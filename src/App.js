@@ -90,7 +90,7 @@
               </section>
                 <section id="about">
                   <h2>About Me</h2>
-                  <p>DevOps engineer with 10 years of experience managing infrastructure for applications with millions of users. I have helped save over $1.75M by reducing infrastructure costs while improving performance. I am looking to apply that same drive at a successful company like Google.</p>
+                  <p>Blockchain believer, with a rapidly accelerating interest in AI. 4 years of experience engineering critical infrastructure for applications with millions of users</p>
                 </section>
                 <section id="experience">
                   <h2>Professional Experience</h2>
@@ -99,7 +99,7 @@
                     <p>Cognizant Technology Solutions (contract via Keybank)</p>
                     <p>Jan 2020 - Feb 2024</p>
                     <ul>
-                      <li>Owned and engineered 100+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
+                      <li>Owned and engineered 200+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
                       <li>Increased deployment velocity by ~750% (12+ hours -> 1.5 hours)</li>
                       <li>Improved release stability to 95% (eliminate errors in prod deployment)</li>
                       <li>Employed regular trunk-based flow strategies and release schedule</li>

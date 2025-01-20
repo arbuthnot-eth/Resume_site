@@ -1,6 +1,7 @@
         import React, { useEffect, useState } from 'react';
         import './App.css';
         import { initParticles } from './particles';
+import Chat from './components/Chat';
         import { ethers } from 'ethers';
 
         function App() {
@@ -174,6 +175,7 @@
               <li><a href="#education" onClick={(e) => { e.preventDefault(); scrollToSection('education'); toggleMenu(); }}>Education</a></li>
               <li><a href="#skills" onClick={(e) => { e.preventDefault(); scrollToSection('skills'); toggleMenu(); }}>Skills</a></li>
               <li><a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); toggleMenu(); }}>Contact</a></li>
+              <li><a href="#chat" onClick={(e) => { e.preventDefault(); scrollToSection('chat'); toggleMenu(); }}>Chat</a></li>
             </ul>
             <div className="wallet-section">
               {!isConnected ? (
@@ -248,6 +250,10 @@
                   <h2>Contact</h2>
                   <p>Email: Brandon.Arbuthnot@protonmail.com</p>
                   <p>Phone: (330) 703-8650</p>
+                </section>
+                <section id="chat">
+                  <h2>Chat with AI</h2>
+                  <Chat />
                 </section>
               </main>
               <div id="crypto-tracker">

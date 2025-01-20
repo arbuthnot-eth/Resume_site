@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import OpenAI from 'openai';
 
@@ -49,28 +49,25 @@ function Chat() {
   };
 
   return (
-    <div className="chat-page">
-      <div className="chat-container">
-        <h1>Chat with AI</h1>
-        <div className="messages">
-          {messages.map((message, index) => (
-            <div key={index} className={`message ${message.role}`}>
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-            </div>
-          ))}
-          {loading && <div className="loading">Loading...</div>}
-        </div>
-        <form onSubmit={handleSubmit} className="input-form">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={loading}
-          />
-          <button type="submit" disabled={loading}>Send</button>
-        </form>
+    <div className="chat-container">
+      <div className="messages">
+        {messages.map((message, index) => (
+          <div key={index} className={`message ${message.role}`}>
+            <ReactMarkdown>{message.content}</ReactMarkdown>
+          </div>
+        ))}
+        {loading && <div className="loading">Loading...</div>}
       </div>
+      <form onSubmit={handleSubmit} className="input-form">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          disabled={loading}
+        />
+        <button type="submit" disabled={loading}>Send</button>
+      </form>
     </div>
   );
 }

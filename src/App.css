@@ -186,22 +186,10 @@ footer {
   color: #D4AF37;
 }
 
-.chat-page {
-  min-height: 100vh;
-  background: #000000;
-  color: #ffffff;
-  padding: 20px;
-}
-
 .chat-container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-}
-
-.chat-page h1 {
-  text-align: center;
-  margin-bottom: 30px;
 }
 
 .messages {

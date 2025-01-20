@@ -219,10 +219,48 @@ footer {
   font-size: 0.9rem;
 }
 
+.connection-status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.status-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.status-icon.check {
+  background-color: #4CAF50;
+  color: white;
+  padding-bottom: 2px;
+}
+
+.status-icon.disconnect {
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.status-icon.disconnect:hover {
+  background-color: #ff0000;
+  transform: scale(1.1);
+}
+
 .connection-status {
   color: #4CAF50;
   font-size: 0.8rem;
-  margin-bottom: 4px;
 }
 
 .wallet-address {

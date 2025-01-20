@@ -149,6 +149,17 @@
             }
           };
 
+          // Disconnect wallet function
+          const disconnectWallet = () => {
+            setWalletAddress('');
+            setEnsName('');
+            setIsConnected(false);
+            // Remove the event listener
+            if (window.ethereum) {
+              window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+            }
+          };
+
           return (
             <div className="App">
               <div id="particles-js" className="particles"></div>
@@ -171,7 +182,11 @@
                 </button>
               ) : (
                 <div className="wallet-info">
-                  <span className="connection-status">Connected</span>
+                  <div className="connection-status-container">
+                    <span className="status-icon check">✓</span>
+                    <span className="connection-status">Connected</span>
+                    <button className="status-icon disconnect" onClick={disconnectWallet}>×</button>
+                  </div>
                   <span className="wallet-address">
                     {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
                   </span>

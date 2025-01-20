@@ -1,7 +1,7 @@
         import React, { useEffect, useState } from 'react';
         import './App.css';
         import { initParticles } from './particles';
-import Chat from './components/Chat';
+import ChatPage from './components/ChatPage';
         import { ethers } from 'ethers';
 
         function App() {
@@ -13,6 +13,7 @@ import Chat from './components/Chat';
           const [walletAddress, setWalletAddress] = useState('');
           const [ensName, setEnsName] = useState('');
           const [isConnected, setIsConnected] = useState(false);
+          const [showChat, setShowChat] = useState(false);
 
           // Scroll to section when clicking on a nav link
           const scrollToSection = (sectionId) => {
@@ -161,6 +162,55 @@ import Chat from './components/Chat';
             }
           };
 
+          // Handle chat navigation
+          const handleChatClick = (e) => {
+            e.preventDefault();
+            setShowChat(true);
+            setMenuOpen(false);
+          };
+
+          const handleBackClick = () => {
+            setShowChat(false);
+          };
+
+          if (showChat) {
+            return (
+              <div className="App">
+                <header>
+                  <nav>
+                    <button className="back-button" onClick={handleBackClick}>
+                      ← Back
+                    </button>
+                    <div className="wallet-section">
+                      {!isConnected ? (
+                        <button className="connect-wallet" onClick={connectWallet}>
+                          Connect Wallet
+                        </button>
+                      ) : (
+                        <div className="wallet-info">
+                          <div className="connection-status-container">
+                            <span className="status-icon check">✓</span>
+                            <span className="connection-status">Connected</span>
+                            <button className="status-icon disconnect" onClick={disconnectWallet}>×</button>
+                          </div>
+                          <span className="wallet-address">
+                            {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </nav>
+                </header>
+                <ChatPage 
+                  isConnected={isConnected} 
+                  btcPrice={btcPrice}
+                  ethPrice={ethPrice}
+                  solPrice={solPrice}
+                />
+              </div>
+            );
+          }
+
           return (
             <div className="App">
               <div id="particles-js" className="particles"></div>
@@ -175,7 +225,7 @@ import Chat from './components/Chat';
               <li><a href="#education" onClick={(e) => { e.preventDefault(); scrollToSection('education'); toggleMenu(); }}>Education</a></li>
               <li><a href="#skills" onClick={(e) => { e.preventDefault(); scrollToSection('skills'); toggleMenu(); }}>Skills</a></li>
               <li><a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); toggleMenu(); }}>Contact</a></li>
-              <li><a href="#chat" onClick={(e) => { e.preventDefault(); scrollToSection('chat'); toggleMenu(); }}>Chat</a></li>
+              <li><a href="#chat" onClick={handleChatClick}>Chat</a></li>
             </ul>
             <div className="wallet-section">
               {!isConnected ? (
@@ -250,10 +300,6 @@ import Chat from './components/Chat';
                   <h2>Contact</h2>
                   <p>Email: Brandon.Arbuthnot@protonmail.com</p>
                   <p>Phone: (330) 703-8650</p>
-                </section>
-                <section id="chat">
-                  <h2>Chat with AI</h2>
-                  <Chat />
                 </section>
               </main>
               <div id="crypto-tracker">

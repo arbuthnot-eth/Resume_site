@@ -1,12 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import OpenAI from 'openai';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const client = new OpenAI({
     baseURL: "https://api.deepseek.com",
@@ -14,19 +13,33 @@ function Chat() {
     dangerouslyAllowBrowser: true
   });
 
+  const systemMessage = {
+    role: 'system',
+    content: 'You are an AI assistant with expertise in blockchain technology, smart contracts, and web3 development. You provide clear, concise, and technically accurate responses. When discussing code or technical concepts, you use specific examples and explain them in a way that\'s easy to understand.'
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage = { role: 'user', content: input.trim() };
     setInput('');
-    setLoading(true);
+    setIsLoading(true);
+
+    // Add user message to chat
+    setMessages(prev => [...prev, { text: userMessage.content, sender: 'user' }]);
 
     try {
       const response = await client.chat.completions.create({
         model: "deepseek-reasoner",
-        messages: [...messages, userMessage],
+        messages: [
+          systemMessage,
+          ...messages.map(msg => ({
+            role: msg.sender,
+            content: msg.text
+          })),
+          userMessage
+        ],
         stream: true
       });
 
@@ -34,29 +47,41 @@ function Chat() {
       for await (const chunk of response) {
         if (chunk.choices[0].delta.content) {
           fullContent += chunk.choices[0].delta.content;
-          setMessages(prev => [
-            ...prev.slice(0, -1),
-            userMessage,
-            { role: 'assistant', content: fullContent }
-          ]);
+          // Update only the assistant's message
+          setMessages(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage.sender === 'assistant') {
+              return [...prev.slice(0, -1), { text: fullContent, sender: 'assistant' }];
+            } else {
+              return [...prev, { text: fullContent, sender: 'assistant' }];
+            }
+          });
         }
       }
     } catch (error) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, there was an error processing your request.' }]);
+      setMessages(prev => [...prev, { 
+        text: 'Sorry, I encountered an error. Please try again.',
+        sender: 'assistant'
+      }]);
+    } finally {
+      setIsLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="chat-container">
       <div className="messages">
         {messages.map((message, index) => (
-          <div key={index} className={`message ${message.role}`}>
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+          <div key={index} className={`message ${message.sender}`}>
+            <ReactMarkdown>{message.text}</ReactMarkdown>
           </div>
         ))}
-        {loading && <div className="loading">Loading...</div>}
+        {isLoading && (
+          <div className="loading">
+            Thinking...
+          </div>
+        )}
       </div>
       <form onSubmit={handleSubmit} className="input-form">
         <input
@@ -64,9 +89,11 @@ function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message..."
-          disabled={loading}
+          disabled={isLoading}
         />
-        <button type="submit" disabled={loading}>Send</button>
+        <button type="submit" disabled={isLoading || !input.trim()}>
+          Send
+        </button>
       </form>
     </div>
   );

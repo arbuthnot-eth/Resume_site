@@ -186,25 +186,68 @@ footer {
   color: #D4AF37;
 }
 
-.chat-container {
+.chat-page {
+  height: 100vh;
+  background-color: #000000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.chat-page .particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.chat-page-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0 20px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.chat-page h1 {
+  text-align: center;
+  margin: 70px 0 10px;
+  color: #D4AF37;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.chat-container {
+  position: relative;
+  z-index: 1;
 }
 
 .messages {
-  height: 60vh;
+  flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 10px;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  max-height: calc(100vh - 200px);
 }
 
 .message {
-  margin-bottom: 15px;
-  padding: 10px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
   border-radius: 8px;
+  max-width: 80%;
 }
 
 .message.user {
@@ -220,11 +263,27 @@ footer {
 .input-form {
   display: flex;
   gap: 10px;
+  padding: 10px 0;
+  background-color: #000000;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.chat-page .input-form {
+  max-width: 760px;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
 }
 
 .input-form input {
   flex: 1;
-  padding: 10px;
+  padding: 8px;
   border: none;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.1);
@@ -232,7 +291,7 @@ footer {
 }
 
 .input-form button {
-  padding: 10px 20px;
+  padding: 8px 16px;
   border: none;
   border-radius: 4px;
   background: #D4AF37;
@@ -345,5 +404,67 @@ footer {
   
   .wallet-info {
     align-items: center;
+  }
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #D4AF37;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  color: #FFD700;
+  transform: translateX(-2px);
+}
+
+.connect-wallet-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 200px);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.connect-wallet-prompt p {
+  color: #D4AF37;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.chat-page #crypto-tracker {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  color: #FFD700;
+  z-index: 1000;
+}
+
+@media screen and (max-width: 768px) {
+  .chat-page #crypto-tracker {
+    bottom: 20px;
+    right: 10px;
+    font-size: 0.8rem;
+    padding: 8px;
   }
 }

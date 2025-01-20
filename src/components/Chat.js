@@ -10,7 +10,8 @@ function Chat() {
 
   const client = new OpenAI({
     baseURL: "https://api.deepseek.com",
-    apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY
+    apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY,
+    dangerouslyAllowBrowser: true
   });
 
   const handleSubmit = async (e) => {

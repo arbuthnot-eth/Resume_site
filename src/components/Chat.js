@@ -7,10 +7,9 @@ function Chat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [deepseekClient, setDeepseekClient] = useState(null);
-  const [openaiClient, setOpenaiClient] = useState(null);
   const [apiError, setApiError] = useState('');
 
-  // Initialize API clients
+  // Initialize API client
   useEffect(() => {
     try {
       if (process.env.REACT_APP_DEEPSEEK_API_KEY) {
@@ -19,21 +18,12 @@ function Chat() {
           apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY,
           dangerouslyAllowBrowser: true
         }));
-      }
-      
-      if (process.env.REACT_APP_OPENAI_API_KEY) {
-        setOpenaiClient(new OpenAI({
-          apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-          dangerouslyAllowBrowser: true
-        }));
-      }
-
-      if (!process.env.REACT_APP_DEEPSEEK_API_KEY && !process.env.REACT_APP_OPENAI_API_KEY) {
-        setApiError('API configuration is missing. Please check environment variables.');
+      } else {
+        setApiError('DeepSeek API configuration is missing. Please check environment variables.');
       }
     } catch (error) {
-      console.error('Error initializing API clients:', error);
-      setApiError('Failed to initialize API clients. Please try again later.');
+      console.error('Error initializing DeepSeek client:', error);
+      setApiError('Failed to initialize DeepSeek client. Please try again later.');
     }
   }, []);
 
@@ -54,42 +44,20 @@ function Chat() {
     setMessages(prev => [...prev, { text: userMessage.content, sender: 'user' }]);
 
     try {
-      // Try DeepSeek first, fallback to OpenAI if it fails
-      let response;
-      try {
-        if (!deepseekClient) throw new Error('DeepSeek client not available');
-        
-        response = await deepseekClient.chat.completions.create({
-          model: "deepseek-reasoner",
-          messages: [
-            systemMessage,
-            ...messages.map(msg => ({
-              role: msg.sender,
-              content: msg.text
-            })),
-            userMessage
-          ],
-          stream: true
-        });
-      } catch (deepseekError) {
-        console.error('DeepSeek error:', deepseekError);
-        
-        if (!openaiClient) throw new Error('OpenAI client not available');
-        
-        // Fallback to OpenAI
-        response = await openaiClient.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [
-            systemMessage,
-            ...messages.map(msg => ({
-              role: msg.sender,
-              content: msg.text
-            })),
-            userMessage
-          ],
-          stream: true
-        });
-      }
+      if (!deepseekClient) throw new Error('DeepSeek client not available');
+      
+      const response = await deepseekClient.chat.completions.create({
+        model: "deepseek-reasoner",
+        messages: [
+          systemMessage,
+          ...messages.map(msg => ({
+            role: msg.sender,
+            content: msg.text
+          })),
+          userMessage
+        ],
+        stream: true
+      });
 
       let fullContent = '';
       for await (const chunk of response) {
@@ -108,12 +76,8 @@ function Chat() {
       }
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = error.message === 'DeepSeek client not available' && error.message === 'OpenAI client not available'
-        ? 'API services are not available. Please check configuration.'
-        : 'Sorry, I encountered an error. Please try again.';
-      
       setMessages(prev => [...prev, { 
-        text: errorMessage,
+        text: 'Sorry, I encountered an error. Please try again.',
         sender: 'assistant'
       }]);
     } finally {
@@ -151,9 +115,9 @@ function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message..."
-          disabled={isLoading || !deepseekClient && !openaiClient}
+          disabled={isLoading || !deepseekClient}
         />
-        <button type="submit" disabled={isLoading || !input.trim() || !deepseekClient && !openaiClient}>
+        <button type="submit" disabled={isLoading || !input.trim() || !deepseekClient}>
           Send
         </button>
       </form>

@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://api.deepseek.com;">
+    <!-- ... other head content ... -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <title>Brandon Arbuthnot - DevOps Engineer</title>
@@ -12,14 +9,5 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <script>
-      // Handle wallet injection errors
-      window.addEventListener('error', function(e) {
-        if (e.message.includes('ethereum') || e.message.includes('web3')) {
-          console.warn('Wallet injection warning:', e.message);
-          return;
-        }
-      });
-    </script>
   </body>
 </html>

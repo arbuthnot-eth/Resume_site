@@ -49,42 +49,38 @@ import ChatPage from './components/ChatPage';
 
             // Cryptocurrency price tracker
             const updateCryptoPrices = async () => {
-              const urls = [
-                'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd'
-              ];
-              
-              for (const url of urls) {
-                try {
-                  const response = await fetch(url, {
-                    headers: {
-                      'Accept': 'application/json',
-                      'Cache-Control': 'no-cache'
-                    }
-                  });
-                  
-                  if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+              try {
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd', {
+                  headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
                   }
-                  
-                  const data = await response.json();
-                  setBtcPrice(`BTC: $${data.bitcoin.usd.toLocaleString()}`);
-                  setEthPrice(`ETH: $${data.ethereum.usd.toLocaleString()}`);
-                  setSolPrice(`SOL: $${data.solana.usd.toLocaleString()}`);
-                  break; // Exit loop if successful
-                } catch (error) {
-                  console.error('Error fetching crypto prices:', error);
-                  // Only set error state if we've tried all URLs
-                  if (url === urls[urls.length - 1]) {
-                    setBtcPrice('BTC: Error loading');
-                    setEthPrice('ETH: Error loading');
-                    setSolPrice('SOL: Error loading');
-                  }
+                });
+                
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                setBtcPrice(`BTC: $${data.bitcoin.usd.toLocaleString()}`);
+                setEthPrice(`ETH: $${data.ethereum.usd.toLocaleString()}`);
+                setSolPrice(`SOL: $${data.solana.usd.toLocaleString()}`);
+              } catch (error) {
+                console.error('Error fetching crypto prices:', error);
+                // Keep the previous prices if they exist, otherwise show error
+                setBtcPrice(prev => prev.includes('$') ? prev : 'BTC: Error loading price');
+                setEthPrice(prev => prev.includes('$') ? prev : 'ETH: Error loading price');
+                setSolPrice(prev => prev.includes('$') ? prev : 'SOL: Error loading price');
+                
+                // Retry after 5 seconds if it's a rate limit error
+                if (error.message.includes('429') || error.message.includes('rate limit')) {
+                  setTimeout(updateCryptoPrices, 5000);
                 }
               }
             };
 
             updateCryptoPrices();
-            // Update every 2 minutes
+            // Increase interval to 2 minutes to avoid rate limiting
             const interval = setInterval(updateCryptoPrices, 120000);
 
             return () => clearInterval(interval);
@@ -98,69 +94,59 @@ import ChatPage from './components/ChatPage';
           // Connect wallet function
           const connectWallet = async () => {
             try {
-              // Check for injected provider
-              const provider = window.ethereum || window.web3?.currentProvider;
-              if (!provider) {
-                alert('Please install MetaMask or another Web3 wallet to connect!');
+              if (!window.ethereum) {
+                alert('Please install MetaMask to connect your wallet!');
                 return;
               }
 
-              const ethersProvider = new ethers.providers.Web3Provider(provider);
-              
-              try {
-                await ethersProvider.send("eth_requestAccounts", []);
-              } catch (requestError) {
-                console.warn('User rejected wallet connection');
-                return;
-              }
-
-              const signer = ethersProvider.getSigner();
+              const provider = new ethers.providers.Web3Provider(window.ethereum);
+              await provider.send("eth_requestAccounts", []);
+              const signer = provider.getSigner();
               const address = await signer.getAddress();
               setWalletAddress(address);
               setIsConnected(true);
 
               // Try to resolve ENS name
               try {
-                const ensName = await ethersProvider.lookupAddress(address);
+                const ensName = await provider.lookupAddress(address);
                 if (ensName) {
                   setEnsName(ensName);
                 }
-              } catch (ensError) {
-                console.warn('Error fetching ENS:', ensError);
+              } catch (error) {
+                console.error('Error fetching ENS:', error);
               }
 
               // Listen for account changes
-              provider.on('accountsChanged', handleAccountsChanged);
-              provider.on('disconnect', () => {
-                disconnectWallet();
-              });
+              window.ethereum.on('accountsChanged', handleAccountsChanged);
             } catch (error) {
               console.error('Error connecting wallet:', error);
-              alert('Failed to connect wallet. Please try again.');
             }
           };
 
           // Handle account changes
           const handleAccountsChanged = async (accounts) => {
-            if (!accounts || accounts.length === 0) {
-              disconnectWallet();
+            if (accounts.length === 0) {
+              // User disconnected
+              setWalletAddress('');
+              setEnsName('');
+              setIsConnected(false);
             } else {
-              try {
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
-                const address = accounts[0];
-                setWalletAddress(address);
-                setIsConnected(true);
+              // Account changed
+              const provider = new ethers.providers.Web3Provider(window.ethereum);
+              const address = accounts[0];
+              setWalletAddress(address);
+              setIsConnected(true);
 
-                try {
-                  const ensName = await provider.lookupAddress(address);
-                  setEnsName(ensName || '');
-                } catch (error) {
-                  console.warn('Error fetching ENS:', error);
+              try {
+                const ensName = await provider.lookupAddress(address);
+                if (ensName) {
+                  setEnsName(ensName);
+                } else {
                   setEnsName('');
                 }
               } catch (error) {
-                console.error('Error handling account change:', error);
-                disconnectWallet();
+                console.error('Error fetching ENS:', error);
+                setEnsName('');
               }
             }
           };
@@ -170,16 +156,9 @@ import ChatPage from './components/ChatPage';
             setWalletAddress('');
             setEnsName('');
             setIsConnected(false);
-            
-            // Remove event listeners
-            const provider = window.ethereum;
-            if (provider && provider.removeListener) {
-              try {
-                provider.removeListener('accountsChanged', handleAccountsChanged);
-                provider.removeListener('disconnect', disconnectWallet);
-              } catch (error) {
-                console.warn('Error removing event listeners:', error);
-              }
+            // Remove the event listener
+            if (window.ethereum) {
+              window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
             }
           };
 
@@ -285,7 +264,7 @@ import ChatPage from './components/ChatPage';
                     <p>Jan 2020 - Feb 2024</p>
                     <ul>
                       <li>Owned and engineered 200+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
-                      <li>Increased deployment velocity by ~750% (12+ hours &rarr; 1.5 hours)</li>
+                      <li>Increased deployment velocity by ~750% (12+ hours -> 1.5 hours)</li>
                       <li>Improved release stability to 95% (eliminate errors in prod deployment)</li>
                       <li>Employed regular trunk-based flow strategies and release schedule</li>
                     </ul>

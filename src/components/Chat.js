@@ -1,87 +1,100 @@
-
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import OpenAI from 'openai';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const client = new OpenAI({
+    baseURL: "https://api.deepseek.com",
+    apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY,
+    dangerouslyAllowBrowser: true
+  });
+
+  const systemMessage = {
+    role: 'system',
+    content: 'You are an AI assistant with expertise in blockchain technology, smart contracts, and web3 development. You provide clear, concise, and technically accurate responses. When discussing code or technical concepts, you use specific examples and explain them in a way that\'s easy to understand.'
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || isLoading) return;
 
-    const userMessage = input.trim();
+    const userMessage = { role: 'user', content: input.trim() };
     setInput('');
-    setLoading(true);
+    setIsLoading(true);
 
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    // Add user message to chat
+    setMessages(prev => [...prev, { text: userMessage.content, sender: 'user' }]);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful AI assistant with expertise in technology and programming.'
-            },
-            ...messages,
-            { role: 'user', content: userMessage }
-          ]
-        })
+      const response = await client.chat.completions.create({
+        model: "deepseek-reasoner",
+        messages: [
+          systemMessage,
+          ...messages.map(msg => ({
+            role: msg.sender,
+            content: msg.text
+          })),
+          userMessage
+        ],
+        stream: true
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      let fullContent = '';
+      for await (const chunk of response) {
+        if (chunk.choices[0].delta.content) {
+          fullContent += chunk.choices[0].delta.content;
+          // Update only the assistant's message
+          setMessages(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage.sender === 'assistant') {
+              return [...prev.slice(0, -1), { text: fullContent, sender: 'assistant' }];
+            } else {
+              return [...prev, { text: fullContent, sender: 'assistant' }];
+            }
+          });
+        }
       }
-
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: data.choices[0].message.content 
-      }]);
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error('Error:', error);
       setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please ensure the DEEPSEEK_API_KEY is properly set in your environment variables.' 
+        text: 'Sorry, I encountered an error. Please try again.',
+        sender: 'assistant'
       }]);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="chat-page">
-      <div className="chat-container">
-        <div className="messages">
-          {messages.map((message, index) => (
-            <div key={index} className={`message ${message.role}`}>
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-            </div>
-          ))}
-          {loading && <div className="loading">Thinking...</div>}
-        </div>
-        <form onSubmit={handleSubmit} className="input-form">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={loading}
-          />
-          <button type="submit" disabled={loading}>Send</button>
-        </form>
+    <div className="chat-container">
+      <div className="messages">
+        {messages.map((message, index) => (
+          <div key={index} className={`message ${message.sender}`}>
+            <ReactMarkdown>{message.text}</ReactMarkdown>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="loading">
+            Thinking...
+          </div>
+        )}
       </div>
+      <form onSubmit={handleSubmit} className="input-form">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          disabled={isLoading}
+        />
+        <button type="submit" disabled={isLoading || !input.trim()}>
+          Send
+        </button>
+      </form>
     </div>
   );
 }

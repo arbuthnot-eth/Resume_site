@@ -1,10 +1,33 @@
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+async function fetchWithRetry(url, options, retries = 0) {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok && retries < MAX_RETRIES) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response;
+  } catch (error) {
+    if (retries < MAX_RETRIES) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retries + 1)));
+      return fetchWithRetry(url, options, retries + 1);
+    }
+    throw error;
+  }
+}
+
 export async function onRequest(context) {
-  // More permissive CORS headers for development
+  // Get the origin from the request headers
+  const origin = context.request.headers.get('Origin') || '*';
+  
+  // CORS headers
   const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
-    'Access-Control-Allow-Headers': '*',
-    'Access-Control-Max-Age': '86400'
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
   };
 
   // Handle preflight requests
@@ -27,7 +50,7 @@ export async function onRequest(context) {
         });
       }
 
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      const response = await fetchWithRetry('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,11 +63,6 @@ export async function onRequest(context) {
           max_tokens: 2000
         })
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error?.message || `DeepSeek API error: ${response.status}`);
-      }
 
       const data = await response.json();
       return new Response(JSON.stringify(data), {

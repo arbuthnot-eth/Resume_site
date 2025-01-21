@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import OpenAI from 'openai';
 
@@ -6,12 +6,36 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [deepseekClient, setDeepseekClient] = useState(null);
+  const [openaiClient, setOpenaiClient] = useState(null);
+  const [apiError, setApiError] = useState('');
 
-  const client = new OpenAI({
-    baseURL: "https://api.deepseek.com",
-    apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY,
-    dangerouslyAllowBrowser: true
-  });
+  // Initialize API clients
+  useEffect(() => {
+    try {
+      if (process.env.DEEPSEEK_API_KEY) {
+        setDeepseekClient(new OpenAI({
+          baseURL: "https://api.deepseek.com",
+          apiKey: process.env.DEEPSEEK_API_KEY,
+          dangerouslyAllowBrowser: true
+        }));
+      }
+      
+      if (process.env.OPENAI_API_KEY) {
+        setOpenaiClient(new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+          dangerouslyAllowBrowser: true
+        }));
+      }
+
+      if (!process.env.DEEPSEEK_API_KEY && !process.env.OPENAI_API_KEY) {
+        setApiError('API configuration is missing. Please check environment variables.');
+      }
+    } catch (error) {
+      console.error('Error initializing API clients:', error);
+      setApiError('Failed to initialize API clients. Please try again later.');
+    }
+  }, []);
 
   const systemMessage = {
     role: 'system',
@@ -30,18 +54,42 @@ function Chat() {
     setMessages(prev => [...prev, { text: userMessage.content, sender: 'user' }]);
 
     try {
-      const response = await client.chat.completions.create({
-        model: "deepseek-reasoner",
-        messages: [
-          systemMessage,
-          ...messages.map(msg => ({
-            role: msg.sender,
-            content: msg.text
-          })),
-          userMessage
-        ],
-        stream: true
-      });
+      // Try DeepSeek first, fallback to OpenAI if it fails
+      let response;
+      try {
+        if (!deepseekClient) throw new Error('DeepSeek client not available');
+        
+        response = await deepseekClient.chat.completions.create({
+          model: "deepseek-reasoner",
+          messages: [
+            systemMessage,
+            ...messages.map(msg => ({
+              role: msg.sender,
+              content: msg.text
+            })),
+            userMessage
+          ],
+          stream: true
+        });
+      } catch (deepseekError) {
+        console.error('DeepSeek error:', deepseekError);
+        
+        if (!openaiClient) throw new Error('OpenAI client not available');
+        
+        // Fallback to OpenAI
+        response = await openaiClient.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [
+            systemMessage,
+            ...messages.map(msg => ({
+              role: msg.sender,
+              content: msg.text
+            })),
+            userMessage
+          ],
+          stream: true
+        });
+      }
 
       let fullContent = '';
       for await (const chunk of response) {
@@ -60,14 +108,28 @@ function Chat() {
       }
     } catch (error) {
       console.error('Error:', error);
+      const errorMessage = error.message === 'DeepSeek client not available' && error.message === 'OpenAI client not available'
+        ? 'API services are not available. Please check configuration.'
+        : 'Sorry, I encountered an error. Please try again.';
+      
       setMessages(prev => [...prev, { 
-        text: 'Sorry, I encountered an error. Please try again.',
+        text: errorMessage,
         sender: 'assistant'
       }]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (apiError) {
+    return (
+      <div className="chat-container">
+        <div className="error-message">
+          {apiError}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="chat-container">
@@ -89,9 +151,9 @@ function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your message..."
-          disabled={isLoading}
+          disabled={isLoading || !deepseekClient && !openaiClient}
         />
-        <button type="submit" disabled={isLoading || !input.trim()}>
+        <button type="submit" disabled={isLoading || !input.trim() || !deepseekClient && !openaiClient}>
           Send
         </button>
       </form>

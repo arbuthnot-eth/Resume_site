@@ -33,7 +33,7 @@ function Chat() {
         userMessage
       ];
 
-      const response = await fetch('/api/proxy', {
+      const response = await fetch('https://chat-ai-function.fleek.co/api/proxy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

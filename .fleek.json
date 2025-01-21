@@ -1,0 +1,20 @@
+{
+  "site": {
+    "id": "chat-ai-function",
+    "name": "chat-ai-function"
+  },
+  "build": {
+    "baseDir": "",
+    "publicDir": "public",
+    "command": "npm run build",
+    "rootDir": ""
+  },
+  "functions": {
+    "api/chat": {
+      "memory": 1024,
+      "timeout": 30,
+      "runtime": "nodejs18.x",
+      "maxConcurrency": 100
+    }
+  }
+} 

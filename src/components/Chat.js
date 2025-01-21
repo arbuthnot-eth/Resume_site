@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import OpenAI from 'openai';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  const client = new OpenAI({
-    baseURL: "https://api.deepseek.com",
-    apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY,
-    dangerouslyAllowBrowser: true
-  });
 
   const systemMessage = {
     role: 'system',
@@ -30,41 +23,53 @@ function Chat() {
     setMessages(prev => [...prev, { text: userMessage.content, sender: 'user' }]);
 
     try {
-      const response = await client.chat.completions.create({
-        model: "deepseek-reasoner",
-        messages: [
-          systemMessage,
-          ...messages.map(msg => ({
-            role: msg.sender,
-            content: msg.text
-          })),
-          userMessage
-        ],
-        stream: true
-      });
+      // Create array of messages including system message
+      const messageHistory = [
+        systemMessage,
+        ...messages.map(msg => ({
+          role: msg.sender,
+          content: msg.text
+        })),
+        userMessage
+      ];
+
+      // Create EventSource for streaming response
+      const eventSource = new EventSource('https://chat-ai-function.fleek.co/api/chat?' + new URLSearchParams({
+        messages: JSON.stringify(messageHistory)
+      }));
 
       let fullContent = '';
-      for await (const chunk of response) {
-        if (chunk.choices[0].delta.content) {
-          fullContent += chunk.choices[0].delta.content;
-          // Update only the assistant's message
-          setMessages(prev => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage.sender === 'assistant') {
-              return [...prev.slice(0, -1), { text: fullContent, sender: 'assistant' }];
-            } else {
-              return [...prev, { text: fullContent, sender: 'assistant' }];
-            }
-          });
-        }
-      }
+
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        fullContent += data.content;
+        
+        // Update only the assistant's message
+        setMessages(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.sender === 'assistant') {
+            return [...prev.slice(0, -1), { text: fullContent, sender: 'assistant' }];
+          } else {
+            return [...prev, { text: fullContent, sender: 'assistant' }];
+          }
+        });
+      };
+
+      eventSource.onerror = () => {
+        eventSource.close();
+        setIsLoading(false);
+      };
+
+      eventSource.addEventListener('done', () => {
+        eventSource.close();
+        setIsLoading(false);
+      });
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { 
         text: 'Sorry, I encountered an error. Please try again.',
         sender: 'assistant'
       }]);
-    } finally {
       setIsLoading(false);
     }
   };

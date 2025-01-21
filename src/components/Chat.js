@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-//import OpenAI from 'openai'; // This is not used in the edited code and is removed
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -15,7 +15,6 @@ function Chat() {
     setInput('');
     setLoading(true);
 
-    // Add user message immediately
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
     try {
@@ -25,24 +24,36 @@ function Chat() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [{
-            role: 'user',
-            content: userMessage
-          }]
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful AI assistant with expertise in technology and programming.'
+            },
+            ...messages,
+            { role: 'user', content: userMessage }
+          ]
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.choices[0].message.content 
+      }]);
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please try again.' 
+        content: 'Sorry, I encountered an error. Please ensure the DEEPSEEK_API_KEY is properly set in your environment variables.' 
       }]);
     } finally {
       setLoading(false);
@@ -52,7 +63,6 @@ function Chat() {
   return (
     <div className="chat-page">
       <div className="chat-container">
-        <h1>Chat with AI</h1>
         <div className="messages">
           {messages.map((message, index) => (
             <div key={index} className={`message ${message.role}`}>

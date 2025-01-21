@@ -21,6 +21,12 @@
       "timeout": 10,
       "runtime": "nodejs18.x",
       "maxConcurrency": 200
+    },
+    "api/proxy": {
+      "memory": 1024,
+      "timeout": 30,
+      "runtime": "nodejs18.x",
+      "maxConcurrency": 100
     }
   }
 } 

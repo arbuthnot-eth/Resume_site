@@ -33,43 +33,34 @@ function Chat() {
         userMessage
       ];
 
-      // Create EventSource for streaming response
-      const eventSource = new EventSource('https://chat-ai-function.fleek.co/api/chat?' + new URLSearchParams({
-        messages: JSON.stringify(messageHistory)
-      }));
-
-      let fullContent = '';
-
-      eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        fullContent += data.content;
-        
-        // Update only the assistant's message
-        setMessages(prev => {
-          const lastMessage = prev[prev.length - 1];
-          if (lastMessage.sender === 'assistant') {
-            return [...prev.slice(0, -1), { text: fullContent, sender: 'assistant' }];
-          } else {
-            return [...prev, { text: fullContent, sender: 'assistant' }];
-          }
-        });
-      };
-
-      eventSource.onerror = () => {
-        eventSource.close();
-        setIsLoading(false);
-      };
-
-      eventSource.addEventListener('done', () => {
-        eventSource.close();
-        setIsLoading(false);
+      const response = await fetch('/api/proxy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: messageHistory
+        })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const assistantMessage = data.choices[0].message.content;
+
+      setMessages(prev => [...prev, { 
+        text: assistantMessage, 
+        sender: 'assistant' 
+      }]);
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { 
         text: 'Sorry, I encountered an error. Please try again.',
         sender: 'assistant'
       }]);
+    } finally {
       setIsLoading(false);
     }
   };

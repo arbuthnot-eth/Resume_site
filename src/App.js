@@ -49,19 +49,42 @@ import ChatPage from './components/ChatPage';
 
             // Cryptocurrency price tracker
             const updateCryptoPrices = async () => {
-              try {
-                const response = await fetch('https://chat-ai-function.fleek.co/api/crypto-prices');
-                const data = await response.json();
-                setBtcPrice(data.bitcoin.usd);
-                setEthPrice(data.ethereum.usd);
-                setSolPrice(data.solana.usd);
-              } catch (error) {
-                console.error('Error fetching crypto prices:', error);
+              const urls = [
+                'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd'
+              ];
+              
+              for (const url of urls) {
+                try {
+                  const response = await fetch(url, {
+                    headers: {
+                      'Accept': 'application/json',
+                      'Cache-Control': 'no-cache'
+                    }
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                  }
+                  
+                  const data = await response.json();
+                  setBtcPrice(`BTC: $${data.bitcoin.usd.toLocaleString()}`);
+                  setEthPrice(`ETH: $${data.ethereum.usd.toLocaleString()}`);
+                  setSolPrice(`SOL: $${data.solana.usd.toLocaleString()}`);
+                  break; // Exit loop if successful
+                } catch (error) {
+                  console.error('Error fetching crypto prices:', error);
+                  // Only set error state if we've tried all URLs
+                  if (url === urls[urls.length - 1]) {
+                    setBtcPrice('BTC: Error loading');
+                    setEthPrice('ETH: Error loading');
+                    setSolPrice('SOL: Error loading');
+                  }
+                }
               }
             };
 
             updateCryptoPrices();
-            // Increase interval to 2 minutes to avoid rate limiting
+            // Update every 2 minutes
             const interval = setInterval(updateCryptoPrices, 120000);
 
             return () => clearInterval(interval);

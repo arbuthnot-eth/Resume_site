@@ -13,22 +13,22 @@ function Chat() {
   // Initialize API clients
   useEffect(() => {
     try {
-      if (process.env.DEEPSEEK_API_KEY) {
+      if (process.env.REACT_APP_DEEPSEEK_API_KEY) {
         setDeepseekClient(new OpenAI({
           baseURL: "https://api.deepseek.com",
-          apiKey: process.env.DEEPSEEK_API_KEY,
+          apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY,
           dangerouslyAllowBrowser: true
         }));
       }
       
-      if (process.env.OPENAI_API_KEY) {
+      if (process.env.REACT_APP_OPENAI_API_KEY) {
         setOpenaiClient(new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY,
+          apiKey: process.env.REACT_APP_OPENAI_API_KEY,
           dangerouslyAllowBrowser: true
         }));
       }
 
-      if (!process.env.DEEPSEEK_API_KEY && !process.env.OPENAI_API_KEY) {
+      if (!process.env.REACT_APP_DEEPSEEK_API_KEY && !process.env.REACT_APP_OPENAI_API_KEY) {
         setApiError('API configuration is missing. Please check environment variables.');
       }
     } catch (error) {

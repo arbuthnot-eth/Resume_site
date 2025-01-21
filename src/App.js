@@ -94,59 +94,69 @@ import ChatPage from './components/ChatPage';
           // Connect wallet function
           const connectWallet = async () => {
             try {
-              if (!window.ethereum) {
-                alert('Please install MetaMask to connect your wallet!');
+              // Check for injected provider
+              const provider = window.ethereum || window.web3?.currentProvider;
+              if (!provider) {
+                alert('Please install MetaMask or another Web3 wallet to connect!');
                 return;
               }
 
-              const provider = new ethers.providers.Web3Provider(window.ethereum);
-              await provider.send("eth_requestAccounts", []);
-              const signer = provider.getSigner();
+              const ethersProvider = new ethers.providers.Web3Provider(provider);
+              
+              try {
+                await ethersProvider.send("eth_requestAccounts", []);
+              } catch (requestError) {
+                console.warn('User rejected wallet connection');
+                return;
+              }
+
+              const signer = ethersProvider.getSigner();
               const address = await signer.getAddress();
               setWalletAddress(address);
               setIsConnected(true);
 
               // Try to resolve ENS name
               try {
-                const ensName = await provider.lookupAddress(address);
+                const ensName = await ethersProvider.lookupAddress(address);
                 if (ensName) {
                   setEnsName(ensName);
                 }
-              } catch (error) {
-                console.error('Error fetching ENS:', error);
+              } catch (ensError) {
+                console.warn('Error fetching ENS:', ensError);
               }
 
               // Listen for account changes
-              window.ethereum.on('accountsChanged', handleAccountsChanged);
+              provider.on('accountsChanged', handleAccountsChanged);
+              provider.on('disconnect', () => {
+                disconnectWallet();
+              });
             } catch (error) {
               console.error('Error connecting wallet:', error);
+              alert('Failed to connect wallet. Please try again.');
             }
           };
 
           // Handle account changes
           const handleAccountsChanged = async (accounts) => {
-            if (accounts.length === 0) {
-              // User disconnected
-              setWalletAddress('');
-              setEnsName('');
-              setIsConnected(false);
+            if (!accounts || accounts.length === 0) {
+              disconnectWallet();
             } else {
-              // Account changed
-              const provider = new ethers.providers.Web3Provider(window.ethereum);
-              const address = accounts[0];
-              setWalletAddress(address);
-              setIsConnected(true);
-
               try {
-                const ensName = await provider.lookupAddress(address);
-                if (ensName) {
-                  setEnsName(ensName);
-                } else {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const address = accounts[0];
+                setWalletAddress(address);
+                setIsConnected(true);
+
+                try {
+                  const ensName = await provider.lookupAddress(address);
+                  setEnsName(ensName || '');
+                } catch (error) {
+                  console.warn('Error fetching ENS:', error);
                   setEnsName('');
                 }
               } catch (error) {
-                console.error('Error fetching ENS:', error);
-                setEnsName('');
+                console.error('Error handling account change:', error);
+                disconnectWallet();
               }
             }
           };
@@ -156,9 +166,16 @@ import ChatPage from './components/ChatPage';
             setWalletAddress('');
             setEnsName('');
             setIsConnected(false);
-            // Remove the event listener
-            if (window.ethereum) {
-              window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+            
+            // Remove event listeners
+            const provider = window.ethereum;
+            if (provider && provider.removeListener) {
+              try {
+                provider.removeListener('accountsChanged', handleAccountsChanged);
+                provider.removeListener('disconnect', disconnectWallet);
+              } catch (error) {
+                console.warn('Error removing event listeners:', error);
+              }
             }
           };
 

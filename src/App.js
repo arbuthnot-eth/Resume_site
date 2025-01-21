@@ -50,32 +50,13 @@ import ChatPage from './components/ChatPage';
             // Cryptocurrency price tracker
             const updateCryptoPrices = async () => {
               try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd', {
-                  headers: {
-                    'Accept': 'application/json',
-                    'Cache-Control': 'no-cache'
-                  }
-                });
-                
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                const response = await fetch('https://chat-ai-function.fleek.co/api/crypto-prices');
                 const data = await response.json();
-                setBtcPrice(`BTC: $${data.bitcoin.usd.toLocaleString()}`);
-                setEthPrice(`ETH: $${data.ethereum.usd.toLocaleString()}`);
-                setSolPrice(`SOL: $${data.solana.usd.toLocaleString()}`);
+                setBtcPrice(data.bitcoin.usd);
+                setEthPrice(data.ethereum.usd);
+                setSolPrice(data.solana.usd);
               } catch (error) {
                 console.error('Error fetching crypto prices:', error);
-                // Keep the previous prices if they exist, otherwise show error
-                setBtcPrice(prev => prev.includes('$') ? prev : 'BTC: Error loading price');
-                setEthPrice(prev => prev.includes('$') ? prev : 'ETH: Error loading price');
-                setSolPrice(prev => prev.includes('$') ? prev : 'SOL: Error loading price');
-                
-                // Retry after 5 seconds if it's a rate limit error
-                if (error.message.includes('429') || error.message.includes('rate limit')) {
-                  setTimeout(updateCryptoPrices, 5000);
-                }
               }
             };
 
@@ -281,7 +262,7 @@ import ChatPage from './components/ChatPage';
                     <p>Jan 2020 - Feb 2024</p>
                     <ul>
                       <li>Owned and engineered 200+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
-                      <li>Increased deployment velocity by ~750% (12+ hours -> 1.5 hours)</li>
+                      <li>Increased deployment velocity by ~750% (12+ hours &rarr; 1.5 hours)</li>
                       <li>Improved release stability to 95% (eliminate errors in prod deployment)</li>
                       <li>Employed regular trunk-based flow strategies and release schedule</li>
                     </ul>

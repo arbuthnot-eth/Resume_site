@@ -15,6 +15,12 @@
       "timeout": 30,
       "runtime": "nodejs18.x",
       "maxConcurrency": 100
+    },
+    "api/crypto-prices": {
+      "memory": 512,
+      "timeout": 10,
+      "runtime": "nodejs18.x",
+      "maxConcurrency": 200
     }
   }
 } 

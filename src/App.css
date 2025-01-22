@@ -1,7 +1,7 @@
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: #000000;
-  color: #D4AF37;
+  background-color: #0C0D11;
+  color: #9945FF;
   line-height: 1.6;
   margin: 0;
   padding: 0;
@@ -137,7 +137,7 @@ section {
 
 h1, h2, h3 {
   font-family: 'Orbitron', sans-serif;
-  color: #FFD700;
+  color: #14F195;
 }
 
 h2 {
@@ -188,8 +188,8 @@ h2 {
 }
 
 .skill-list li:hover {
-  background: #D4AF37;
-  color: #000000;
+  background: #9945FF;
+  color: #ffffff;
   transform: translateY(-5px);
 }
 

@@ -2,13 +2,55 @@ export function initParticles() {
     if (window.particlesJS) {
       window.particlesJS('particles-js', {
         particles: {
-          number: { value: 80, density: { enable: true, value_area: 800 } },
+          number: { value: 60, density: { enable: true, value_area: 800 } },
           color: { value: ["#9945FF", "#14F195", "#00C2FF"] },
           shape: { type: "circle" },
-          opacity: { value: 0.6, random: true },
-          size: { value: 3, random: true },
-          line_linked: { enable: true, distance: 150, color: "#9945FF", opacity: 0.4, width: 1 },
-          move: { enable: true, speed: 6, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
+          opacity: {
+            value: 0.9,
+            random: true,
+            anim: {
+              enable: true,
+              speed: 1,
+              opacity_min: 0.4,
+              sync: false
+            }
+          },
+          size: { 
+            value: 5,
+            random: true,
+            anim: {
+              enable: true,
+              speed: 4,
+              size_min: 2,
+              sync: false
+            }
+          },
+          line_linked: {
+            enable: true,
+            distance: 150,
+            color: "#9945FF",
+            opacity: 0.6,
+            width: 2,
+            shadow: {
+              enable: true,
+              color: "#14F195",
+              blur: 5
+            }
+          },
+          move: {
+            enable: true,
+            speed: 4,
+            direction: "none",
+            random: true,
+            straight: false,
+            out_mode: "out",
+            bounce: false,
+            attract: {
+              enable: true,
+              rotateX: 600,
+              rotateY: 1200
+            }
+          }
         },
         interactivity: {
           detect_on: "canvas",

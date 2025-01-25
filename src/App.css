@@ -36,6 +36,7 @@ header {
   font-size: 0.9rem;
   color: #FFD700;
   z-index: 1000;
+  transition: transform 0.3s ease;
 }
 
 #crypto-tracker span {
@@ -119,10 +120,11 @@ nav ul li a:hover {
 }
 
 main {
-  padding: 80px 20px 20px; /* Increased top padding for fixed header */
-  max-width: 1200px;
+  padding: 80px 10px 20px; /* Reduced side padding */
+  max-width: 100%;
   margin: 0 auto;
-  padding-top: 60px; /* Adjust this value based on your header height */
+  padding-top: 60px;
+  overflow-x: hidden;
 }
 
 section {
@@ -131,8 +133,13 @@ section {
   padding: 2rem;
   border-radius: 4px;
   box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
-  padding-top: 20px; /* This should match the main padding-top */
-  margin-top: -20px; /* This offsets the padding-top */
+  padding-top: 20px;
+  margin-top: -20px;
+}
+
+section:not(#hero) {
+  background: rgba(10, 10, 10, 0.8);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
 }
 
 h1, h2, h3 {
@@ -147,8 +154,10 @@ h2 {
 
 #hero {
   text-align: center;
-  padding: 100px 0 50px;
-  padding-top: 30px; /* Double the padding for the hero section */
+  padding: 30px 0 0;
+  margin-bottom: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 #hero h1 {
@@ -159,6 +168,7 @@ h2 {
 #hero p {
   font-size: 1.5rem;
   margin-top: 0;
+  margin-bottom: 0; /* Ensure no margin at bottom */
 }
 
 .job h3, .school {
@@ -408,26 +418,6 @@ footer {
   font-family: monospace;
 }
 
-.solana-address {
-  background: rgba(0, 0, 0, 0.5);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 0.8rem;
-  color: #14F195;
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.solana-address::before {
-  content: 'SOL:';
-  color: #9945FF;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.7rem;
-}
-
 @media screen and (max-width: 768px) {
   .wallet-section {
     position: static;
@@ -492,6 +482,45 @@ footer {
   font-size: 0.9rem;
   color: #FFD700;
   z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+.crypto-toggle {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  border: none;
+  color: #FFD700;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.crypto-toggle:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: translateX(-50%) scale(1.1);
+}
+
+.crypto-toggle .caret {
+  transition: transform 0.3s ease;
+  display: block;
+  line-height: 1;
+}
+
+.crypto-toggle .caret.up {
+  transform: rotate(180deg);
+}
+
+.chat-page #crypto-tracker.hidden {
+  transform: translateY(calc(100% + 20px));
 }
 
 @media screen and (max-width: 768px) {
@@ -524,4 +553,224 @@ footer {
   margin: 10px 0;
   font-size: 0.9rem;
   line-height: 1.4;
+}
+
+.x-handle {
+  display: block;
+  font-size: 0.8rem;
+  color: #1DA1F2;
+  margin-top: 4px;
+  font-family: 'Orbitron', sans-serif;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.x-handle:hover {
+  color: #ffffff;
+  background: #1DA1F2;
+}
+
+.solana-address {
+  display: block;
+  font-size: 0.8rem;
+  color: #14F195;
+  margin-top: 4px;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.solana-address:hover {
+  color: #000000;
+  background: #14F195;
+}
+
+.wallet-address-container {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.wallet-address-container:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.wallet-address {
+  background: none;
+  padding: 0;
+}
+
+.dropdown-arrow {
+  color: #D4AF37;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.wallet-details-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 4px;
+  padding: 8px;
+  min-width: 200px;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  margin-bottom: 4px;
+}
+
+.dropdown-item:last-child {
+  margin-bottom: 0;
+}
+
+.dropdown-item .label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.dropdown-item.x-handle {
+  color: #1DA1F2;
+}
+
+.dropdown-item.x-handle:hover {
+  background: rgba(29, 161, 242, 0.1);
+}
+
+.dropdown-item.solana-address {
+  color: #14F195;
+}
+
+.dropdown-item.solana-address:hover {
+  background: rgba(20, 241, 149, 0.1);
+}
+
+.dropdown-item .value {
+  font-family: monospace;
+}
+
+.section-titles {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem; /* Reduced from 1rem */
+  margin-top: 0;
+  margin-bottom: 1.2rem;
+  padding: 0.5rem; /* Reduced from 1rem */
+  background: transparent;
+  border-radius: 4px;
+  position: sticky;
+  top: 80px;
+  z-index: 10;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.section-title {
+  cursor: pointer;
+  padding: 0.5rem;  /* Reduced horizontal padding */
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  background: transparent;
+  min-width: 80px; /* Reduced from 100px */
+  text-align: center;
+  color: #14F195;
+  font-family: 'Orbitron', sans-serif;
+  position: relative;
+  overflow: hidden;
+  font-size: 0.9rem; /* Slightly smaller font */
+}
+
+.section-title:hover {
+  background: rgba(20, 241, 149, 0.1);
+  transform: scale(1.1);
+  z-index: 2;
+}
+
+.section-title.active {
+  background: rgba(20, 241, 149, 0.1);
+  color: #14F195;
+  font-weight: bold;
+  transform: scale(1.05);
+}
+
+.sections-container {
+  position: relative;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.collapsible-section {
+  padding: 1rem; /* Added padding */
+  width: calc(100% - 2rem); /* Account for padding */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(10, 10, 10, 0.8);
+  border-radius: 4px;
+  margin-bottom: 1rem; /* Increased from 0.35rem */
+}
+
+.collapsible-section.expanded {
+  position: relative;
+  opacity: 1;
+  pointer-events: all;
+  margin-bottom: 1.5rem; /* Increased from 0.7rem */
+}
+
+.collapsible-section h2 {
+  margin: 0;
+  padding: 1rem;
+  border-bottom: 2px solid #D4AF37;
+}
+
+.section-content {
+  padding: 1rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+}
+
+.collapsible-section.expanded .section-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media screen and (max-width: 600px) {
+  .section-title {
+    min-width: 60px;
+    padding: 0.4rem;
+    font-size: 0.8rem;
+  }
+  
+  .section-titles {
+    gap: 0.3rem;
+    padding: 0.3rem;
+  }
 }

@@ -12,9 +12,19 @@ import ChatPage from './components/ChatPage';
           const [menuOpen, setMenuOpen] = useState(false);
           const [walletAddress, setWalletAddress] = useState('');
           const [ensName, setEnsName] = useState('');
+          const [xHandle, setXHandle] = useState('');
           const [solanaAddress, setSolanaAddress] = useState('');
           const [isConnected, setIsConnected] = useState(false);
           const [showChat, setShowChat] = useState(false);
+          const [showWalletDetails, setShowWalletDetails] = useState(false);
+          const [showTickers, setShowTickers] = useState(true);
+          const [expandedSections, setExpandedSections] = useState({
+            about: false,
+            experience: false,
+            education: false,
+            skills: false,
+            contact: true
+          });
 
           // Scroll to section when clicking on a nav link
           const scrollToSection = (sectionId) => {
@@ -27,7 +37,20 @@ import ChatPage from './components/ChatPage';
                 top: sectionTop - headerHeight,
                 behavior: 'smooth'
               });
+              // Expand the clicked section
+              setExpandedSections(prev => ({
+                ...prev,
+                [sectionId]: true
+              }));
             }
+          };
+
+          // Add toggle function for sections
+          const toggleSection = (sectionId) => {
+            setExpandedSections(prev => ({
+              ...prev,
+              [sectionId]: !prev[sectionId]
+            }));
           };
 
           // Initialize particles.js and fetch cryptocurrency prices
@@ -63,9 +86,9 @@ import ChatPage from './components/ChatPage';
                 }
                 
                 const data = await response.json();
-                setBtcPrice(`BTC: $${data.bitcoin.usd.toLocaleString()}`);
-                setEthPrice(`ETH: $${data.ethereum.usd.toLocaleString()}`);
-                setSolPrice(`SOL: $${data.solana.usd.toLocaleString()}`);
+                setBtcPrice(`BTC: $${Math.round(data.bitcoin.usd).toLocaleString()}`);
+                setEthPrice(`ETH: $${Math.round(data.ethereum.usd).toLocaleString()}`);
+                setSolPrice(`SOL: $${Math.round(data.solana.usd).toLocaleString()}`);
               } catch (error) {
                 console.error('Error fetching crypto prices:', error);
                 // Keep the previous prices if they exist, otherwise show error
@@ -107,23 +130,30 @@ import ChatPage from './components/ChatPage';
               setWalletAddress(address);
               setIsConnected(true);
 
-              // Try to resolve ENS name and Solana address
+              // Try to resolve ENS name and associated records
               try {
                 const ensName = await provider.lookupAddress(address);
                 if (ensName) {
                   setEnsName(ensName);
-                  // Get resolver for the ENS name
+                  
+                  // Get the resolver for the ENS name
                   const resolver = await provider.getResolver(ensName);
                   if (resolver) {
-                    // Try to get Solana address from ENS records
-                    const solAddress = await resolver.getText('SOL');
-                    if (solAddress) {
-                      setSolanaAddress(solAddress);
+                    // Try to get the X (Twitter) handle
+                    const xHandle = await resolver.getText('com.twitter');
+                    if (xHandle) {
+                      setXHandle(xHandle);
+                    }
+
+                    // Try to get the Solana address
+                    const solAddr = await resolver.getText('solAddr');
+                    if (solAddr) {
+                      setSolanaAddress(solAddr);
                     }
                   }
                 }
               } catch (error) {
-                console.error('Error fetching ENS or Solana address:', error);
+                console.error('Error fetching ENS records:', error);
               }
 
               // Listen for account changes
@@ -139,6 +169,7 @@ import ChatPage from './components/ChatPage';
               // User disconnected
               setWalletAddress('');
               setEnsName('');
+              setXHandle('');
               setSolanaAddress('');
               setIsConnected(false);
             } else {
@@ -152,24 +183,31 @@ import ChatPage from './components/ChatPage';
                 const ensName = await provider.lookupAddress(address);
                 if (ensName) {
                   setEnsName(ensName);
-                  // Get resolver for the ENS name
+                  
+                  // Get the resolver for the ENS name
                   const resolver = await provider.getResolver(ensName);
                   if (resolver) {
-                    // Try to get Solana address from ENS records
-                    const solAddress = await resolver.getText('SOL');
-                    if (solAddress) {
-                      setSolanaAddress(solAddress);
-                    } else {
-                      setSolanaAddress('');
+                    // Try to get the X (Twitter) handle
+                    const xHandle = await resolver.getText('com.twitter');
+                    if (xHandle) {
+                      setXHandle(xHandle);
+                    }
+
+                    // Try to get the Solana address
+                    const solAddr = await resolver.getText('solAddr');
+                    if (solAddr) {
+                      setSolanaAddress(solAddr);
                     }
                   }
                 } else {
                   setEnsName('');
+                  setXHandle('');
                   setSolanaAddress('');
                 }
               } catch (error) {
-                console.error('Error fetching ENS or Solana address:', error);
+                console.error('Error fetching ENS records:', error);
                 setEnsName('');
+                setXHandle('');
                 setSolanaAddress('');
               }
             }
@@ -179,6 +217,7 @@ import ChatPage from './components/ChatPage';
           const disconnectWallet = () => {
             setWalletAddress('');
             setEnsName('');
+            setXHandle('');
             setSolanaAddress('');
             setIsConnected(false);
             // Remove the event listener
@@ -218,14 +257,32 @@ import ChatPage from './components/ChatPage';
                             <span className="connection-status">Connected</span>
                             <button className="status-icon disconnect" onClick={disconnectWallet}>×</button>
                           </div>
-                          <span className="wallet-address">
-                            {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
-                          </span>
-                          {solanaAddress && (
-                            <span className="solana-address">
-                              {`${solanaAddress.slice(0, 6)}...${solanaAddress.slice(-4)}`}
+                          <div className="wallet-address-container" onClick={() => setShowWalletDetails(!showWalletDetails)}>
+                            <span className="wallet-address">
+                              {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
                             </span>
-                          )}
+                            <span className="dropdown-arrow" style={{ transform: showWalletDetails ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                              &darr;
+                            </span>
+                            {showWalletDetails && (
+                              <div className="wallet-details-dropdown">
+                                {xHandle && (
+                                  <div className="dropdown-item x-handle">
+                                    <span className="label">X Handle</span>
+                                    <span className="value">{xHandle}</span>
+                                  </div>
+                                )}
+                                {solanaAddress && (
+                                  <div className="dropdown-item solana-address">
+                                    <span className="label">Solana</span>
+                                    <span className="value">
+                                      {`${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}`}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -236,6 +293,8 @@ import ChatPage from './components/ChatPage';
                   btcPrice={btcPrice}
                   ethPrice={ethPrice}
                   solPrice={solPrice}
+                  showTickers={showTickers}
+                  setShowTickers={setShowTickers}
                 />
               </div>
             );
@@ -269,14 +328,32 @@ import ChatPage from './components/ChatPage';
                     <span className="connection-status">Connected</span>
                     <button className="status-icon disconnect" onClick={disconnectWallet}>×</button>
                   </div>
-                  <span className="wallet-address">
-                    {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
-                  </span>
-                  {solanaAddress && (
-                    <span className="solana-address">
-                      {`${solanaAddress.slice(0, 6)}...${solanaAddress.slice(-4)}`}
+                  <div className="wallet-address-container" onClick={() => setShowWalletDetails(!showWalletDetails)}>
+                    <span className="wallet-address">
+                      {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
                     </span>
-                  )}
+                    <span className="dropdown-arrow" style={{ transform: showWalletDetails ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                      &darr;
+                    </span>
+                    {showWalletDetails && (
+                      <div className="wallet-details-dropdown">
+                        {xHandle && (
+                          <div className="dropdown-item x-handle">
+                            <span className="label">X Handle</span>
+                            <span className="value">{xHandle}</span>
+                          </div>
+                        )}
+                        {solanaAddress && (
+                          <div className="dropdown-item solana-address">
+                            <span className="label">Solana</span>
+                            <span className="value">
+                              {`${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -287,55 +364,120 @@ import ChatPage from './components/ChatPage';
                 <h1 id="name">{name}</h1>
                 <p>DevOps Engineer</p>
               </section>
-                <section id="about">
+              
+              <div className="section-titles">
+                <div 
+                  className={`section-title ${expandedSections.about ? 'active' : ''}`}
+                  onClick={() => toggleSection('about')}
+                >
+                  About Me
+                </div>
+                <div 
+                  className={`section-title ${expandedSections.experience ? 'active' : ''}`}
+                  onClick={() => toggleSection('experience')}
+                >
+                  Experience
+                </div>
+                <div 
+                  className={`section-title ${expandedSections.education ? 'active' : ''}`}
+                  onClick={() => toggleSection('education')}
+                >
+                  Education
+                </div>
+                <div 
+                  className={`section-title ${expandedSections.skills ? 'active' : ''}`}
+                  onClick={() => toggleSection('skills')}
+                >
+                  Skills
+                </div>
+                <div 
+                  className={`section-title ${expandedSections.contact ? 'active' : ''}`}
+                  onClick={() => toggleSection('contact')}
+                >
+                  Contact
+                </div>
+              </div>
+
+              <div className="sections-container">
+                <section 
+                  id="about" 
+                  className={`collapsible-section ${expandedSections.about ? 'expanded' : ''}`}
+                >
                   <h2>About Me</h2>
-                  <p>Blockchain believer, with a rapidly accelerating interest in AI. 4 years of experience engineering critical infrastructure for applications with millions of users</p>
+                  <div className="section-content">
+                    <p>Blockchain believer, with a rapidly accelerating interest in AI. 4 years of experience engineering critical infrastructure for applications with millions of users</p>
+                  </div>
                 </section>
-                <section id="experience">
+
+                <section 
+                  id="experience" 
+                  className={`collapsible-section ${expandedSections.experience ? 'expanded' : ''}`}
+                >
                   <h2>Professional Experience</h2>
-                  <div className="job">
-                    <h3>Software Engineer - DevOps</h3>
-                    <p>Cognizant Technology Solutions (contract via Keybank)</p>
-                    <p>Jan 2020 - Feb 2024</p>
-                    <ul>
-                      <li>Owned and engineered 200+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
-                      <li>Increased deployment velocity by ~750% (12+ hours -> 1.5 hours)</li>
-                      <li>Improved release stability to 95% (eliminate errors in prod deployment)</li>
-                      <li>Employed regular trunk-based flow strategies and release schedule</li>
-                    </ul>
-                  </div>
-                  <div className="job">
-                    <h3>Lead Developer | Python</h3>
-                    <p>Pokémon Revolution Online (Non-Profit)</p>
-                    <p>January 2015 - July 2019 | Remote</p>
-                    <ul>
-                      <li>Created quest storylines and integrated with previously existing content</li>
-                      <li>Delivered spontaneous hunt events, scripted interactions, dynamic objectives</li>
-                      <li>Integrated and improved mechanics of the battle API</li>
-                      <li>Developed 'Mega Stone' mechanics and plot</li>
-                      <li>Converted the core MMO codebase from Xanascript to Python</li>
-                    </ul>
+                  <div className="section-content">
+                    <div className="job">
+                      <h3>Software Engineer - DevOps</h3>
+                      <p>Cognizant Technology Solutions (contract via Keybank)</p>
+                      <p>Jan 2020 - Feb 2024</p>
+                      <ul>
+                        <li>Owned and engineered 200+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
+                        <li>Increased deployment velocity by ~750% (12+ hours -> 1.5 hours)</li>
+                        <li>Improved release stability to 95% (eliminate errors in prod deployment)</li>
+                        <li>Employed regular trunk-based flow strategies and release schedule</li>
+                      </ul>
+                    </div>
+                    <div className="job">
+                      <h3>Lead Developer | Python</h3>
+                      <p>Pokémon Revolution Online (Non-Profit)</p>
+                      <p>January 2015 - July 2019 | Remote</p>
+                      <ul>
+                        <li>Created quest storylines and integrated with previously existing content</li>
+                        <li>Delivered spontaneous hunt events, scripted interactions, dynamic objectives</li>
+                        <li>Integrated and improved mechanics of the battle API</li>
+                        <li>Developed 'Mega Stone' mechanics and plot</li>
+                        <li>Converted the core MMO codebase from Xanascript to Python</li>
+                      </ul>
+                    </div>
                   </div>
                 </section>
-                <section id="education">
+
+                <section 
+                  id="education" 
+                  className={`collapsible-section ${expandedSections.education ? 'expanded' : ''}`}
+                >
                   <h2>Education</h2>
-                  <h3>B.S. Computer Science & Engineering</h3>
-                  <p>Ohio State University</p>
-                  <p>August 2015 - December 2019 | Columbus, OH</p>
+                  <div className="section-content">
+                    <h3>B.S. Computer Science & Engineering</h3>
+                    <p>Ohio State University</p>
+                    <p>August 2015 - December 2019 | Columbus, OH</p>
+                  </div>
                 </section>
-                <section id="skills">
+
+                <section 
+                  id="skills" 
+                  className={`collapsible-section ${expandedSections.skills ? 'expanded' : ''}`}
+                >
                   <h2>Skills</h2>
-                  <ul className="skill-list">
-                    {['Docker', 'ELK Stack', 'Git', 'Jenkins', 'Linux', 'Mainframe', 'Python', 'Solidity', 'SQL', 'XL Release', 'YAML'].map((skill, index) => (
-                      <li key={index}>{skill}</li>
-                    ))}
-                  </ul>
+                  <div className="section-content">
+                    <ul className="skill-list">
+                      {['Docker', 'ELK Stack', 'Git', 'Jenkins', 'Linux', 'Mainframe', 'Python', 'Solidity', 'SQL', 'XL Release', 'YAML'].map((skill, index) => (
+                        <li key={index}>{skill}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </section>
-                <section id="contact">
+
+                <section 
+                  id="contact" 
+                  className={`collapsible-section ${expandedSections.contact ? 'expanded' : ''}`}
+                >
                   <h2>Contact</h2>
-                  <p>Email: Brandon.Arbuthnot@protonmail.com</p>
-                  <p>Phone: (330) 703-8650</p>
+                  <div className="section-content">
+                    <p>Email: Brandon.Arbuthnot@protonmail.com</p>
+                    <p>Phone: (330) 703-8650</p>
+                  </div>
                 </section>
+              </div>
               </main>
               <div id="crypto-tracker">
                 <span id="btc-price">{btcPrice}</span>

@@ -408,6 +408,26 @@ footer {
   font-family: monospace;
 }
 
+.solana-address {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #14F195;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.solana-address::before {
+  content: 'SOL:';
+  color: #9945FF;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+}
+
 @media screen and (max-width: 768px) {
   .wallet-section {
     position: static;

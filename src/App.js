@@ -12,6 +12,7 @@ import ChatPage from './components/ChatPage';
           const [menuOpen, setMenuOpen] = useState(false);
           const [walletAddress, setWalletAddress] = useState('');
           const [ensName, setEnsName] = useState('');
+          const [solanaAddress, setSolanaAddress] = useState('');
           const [isConnected, setIsConnected] = useState(false);
           const [showChat, setShowChat] = useState(false);
 
@@ -106,14 +107,23 @@ import ChatPage from './components/ChatPage';
               setWalletAddress(address);
               setIsConnected(true);
 
-              // Try to resolve ENS name
+              // Try to resolve ENS name and Solana address
               try {
                 const ensName = await provider.lookupAddress(address);
                 if (ensName) {
                   setEnsName(ensName);
+                  // Get resolver for the ENS name
+                  const resolver = await provider.getResolver(ensName);
+                  if (resolver) {
+                    // Try to get Solana address from ENS records
+                    const solAddress = await resolver.getText('SOL');
+                    if (solAddress) {
+                      setSolanaAddress(solAddress);
+                    }
+                  }
                 }
               } catch (error) {
-                console.error('Error fetching ENS:', error);
+                console.error('Error fetching ENS or Solana address:', error);
               }
 
               // Listen for account changes
@@ -129,6 +139,7 @@ import ChatPage from './components/ChatPage';
               // User disconnected
               setWalletAddress('');
               setEnsName('');
+              setSolanaAddress('');
               setIsConnected(false);
             } else {
               // Account changed
@@ -141,12 +152,25 @@ import ChatPage from './components/ChatPage';
                 const ensName = await provider.lookupAddress(address);
                 if (ensName) {
                   setEnsName(ensName);
+                  // Get resolver for the ENS name
+                  const resolver = await provider.getResolver(ensName);
+                  if (resolver) {
+                    // Try to get Solana address from ENS records
+                    const solAddress = await resolver.getText('SOL');
+                    if (solAddress) {
+                      setSolanaAddress(solAddress);
+                    } else {
+                      setSolanaAddress('');
+                    }
+                  }
                 } else {
                   setEnsName('');
+                  setSolanaAddress('');
                 }
               } catch (error) {
-                console.error('Error fetching ENS:', error);
+                console.error('Error fetching ENS or Solana address:', error);
                 setEnsName('');
+                setSolanaAddress('');
               }
             }
           };
@@ -155,6 +179,7 @@ import ChatPage from './components/ChatPage';
           const disconnectWallet = () => {
             setWalletAddress('');
             setEnsName('');
+            setSolanaAddress('');
             setIsConnected(false);
             // Remove the event listener
             if (window.ethereum) {
@@ -196,6 +221,11 @@ import ChatPage from './components/ChatPage';
                           <span className="wallet-address">
                             {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
                           </span>
+                          {solanaAddress && (
+                            <span className="solana-address">
+                              {`${solanaAddress.slice(0, 6)}...${solanaAddress.slice(-4)}`}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -242,6 +272,11 @@ import ChatPage from './components/ChatPage';
                   <span className="wallet-address">
                     {ensName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
                   </span>
+                  {solanaAddress && (
+                    <span className="solana-address">
+                      {`${solanaAddress.slice(0, 6)}...${solanaAddress.slice(-4)}`}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

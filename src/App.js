@@ -22,7 +22,7 @@
             about: false,
             experience: false,
             education: false,
-            skills: false,
+            stack: false,
             contact: true
           });
 
@@ -245,7 +245,7 @@
                     <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); toggleMenu(); }}>About</a></li>
                     <li><a href="#experience" onClick={(e) => { e.preventDefault(); scrollToSection('experience'); toggleMenu(); }}>Experience</a></li>
                     <li><a href="#education" onClick={(e) => { e.preventDefault(); scrollToSection('education'); toggleMenu(); }}>Education</a></li>
-                    <li><a href="#skills" onClick={(e) => { e.preventDefault(); scrollToSection('skills'); toggleMenu(); }}>Skills</a></li>
+                    <li><a href="#stack" onClick={(e) => { e.preventDefault(); scrollToSection('stack'); toggleMenu(); }}>Stack</a></li>
                     <li><a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); toggleMenu(); }}>Contact</a></li>
                   </ul>
                   <div className="wallet-section">
@@ -339,10 +339,10 @@
                     Education
                   </div>
                   <div 
-                    className={`section-title ${expandedSections.skills ? 'active' : ''}`}
-                    onClick={() => toggleSection('skills')}
+                    className={`section-title ${expandedSections.stack ? 'active' : ''}`}
+                    onClick={() => toggleSection('stack')}
                   >
-                    Skills
+                    Stack
                   </div>
                   <div 
                     className={`section-title ${expandedSections.contact ? 'active' : ''}`}
@@ -408,10 +408,10 @@
                   </section>
 
                   <section 
-                    id="skills" 
-                    className={`collapsible-section ${expandedSections.skills ? 'expanded' : ''}`}
+                    id="stack"
+                    className={`collapsible-section ${expandedSections.stack ? 'expanded' : ''}`}
                   >
-                    <h2>Skills</h2>
+                    <h2>Stack</h2>
                     <div className="section-content">
                       <ul className="skill-list">
                         {['Docker', 'ELK Stack', 'Git', 'Jenkins', 'Linux', 'Mainframe', 'Python', 'Solidity', 'SQL', 'XL Release', 'YAML'].map((skill, index) => (

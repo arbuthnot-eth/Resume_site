@@ -7,6 +7,53 @@ body {
   padding: 0;
 }
 
+/* Webkit scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  margin: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #14F195, #9945FF);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #0dd584, #7b35d9);
+  transform: scale(1.2);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox scrollbar styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #14F195 rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure chat messages container has clean scrollbar */
+.messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #14F195, #9945FF);
+  border: none;
+  background-clip: padding-box;
+}
+
 .particles {
   position: fixed;
   top: 0;

@@ -705,6 +705,7 @@ footer p {
   border-radius: 4px;
   transition: all 0.3s ease;
   margin-bottom: 4px;
+  gap: 8px;
 }
 
 .dropdown-item:last-child {
@@ -712,8 +713,8 @@ footer p {
 }
 
 .dropdown-item .label {
-  font-size: 0.8rem;
-  opacity: 0.8;
+  font-size: 0.7rem;
+  opacity: 0.7;
 }
 
 .dropdown-item.x-handle {
@@ -732,8 +733,37 @@ footer p {
   background: rgba(20, 241, 149, 0.1);
 }
 
+.dropdown-item.bitcoin-address {
+  color: #F7931A;
+}
+
+.dropdown-item.bitcoin-address:hover {
+  background: rgba(247, 147, 26, 0.1);
+}
+
 .dropdown-item .value {
   font-family: monospace;
+  font-size: 0.8rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 12px;
+}
+
+/* Style for not found messages */
+.dropdown-item .value:contains('[Bitcoin Addr not found]'),
+.dropdown-item .value:contains('[Solana Addr not found]') {
+  font-style: italic;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.dropdown-item.bitcoin-address .value:contains('[Bitcoin Addr not found]') {
+  color: rgba(247, 147, 26, 0.5);
+}
+
+.dropdown-item.solana-address .value:contains('[Solana Addr not found]') {
+  color: rgba(20, 241, 149, 0.5);
 }
 
 .section-titles {

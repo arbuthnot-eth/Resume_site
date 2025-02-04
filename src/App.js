@@ -1,4 +1,4 @@
-        import React, { useEffect, useState } from 'react';
+        import React, { useEffect, useState, useMemo, useCallback } from 'react';
         import './App.css';
         import { initParticles } from './particles';
         import { ethers } from 'ethers';
@@ -9,11 +9,13 @@
           const [btcPrice, setBtcPrice] = useState('Loading...');
           const [ethPrice, setEthPrice] = useState('Loading...');
           const [solPrice, setSolPrice] = useState('Loading...');
+          const [suiPrice, setSuiPrice] = useState('Loading...');
           const [menuOpen, setMenuOpen] = useState(false);
           const [walletAddress, setWalletAddress] = useState('');
           const [ensName, setEnsName] = useState('');
           const [xHandle, setXHandle] = useState('');
           const [solanaAddress, setSolanaAddress] = useState('');
+          const [bitcoinAddress, setBitcoinAddress] = useState('');
           const [isConnected, setIsConnected] = useState(false);
           const [showChatPopup, setShowChatPopup] = useState(false);
           const [showWalletDetails, setShowWalletDetails] = useState(false);
@@ -26,8 +28,26 @@
             contact: true
           });
 
-          // Scroll to section when clicking on a nav link
-          const scrollToSection = (sectionId) => {
+          // Add useMemo for static content
+          const skillsList = useMemo(() => (
+            ['Docker', 'ELK Stack', 'Git', 'Jenkins', 'Linux', 'Mainframe', 'Python', 'Solidity', 'SQL', 'XL Release', 'YAML'].map((skill, index) => (
+              <li key={index}>{skill}</li>
+            ))
+          ), []);
+
+          // Add useCallback for event handlers
+          const toggleMenu = useCallback(() => {
+            setMenuOpen(prev => !prev);
+          }, []);
+
+          const toggleSection = useCallback((sectionId) => {
+            setExpandedSections(prev => ({
+              ...prev,
+              [sectionId]: !prev[sectionId]
+            }));
+          }, []);
+
+          const scrollToSection = useCallback((sectionId) => {
             const section = document.getElementById(sectionId);
             const header = document.querySelector('header');
             if (section && header) {
@@ -37,21 +57,12 @@
                 top: sectionTop - headerHeight,
                 behavior: 'smooth'
               });
-              // Expand the clicked section
               setExpandedSections(prev => ({
                 ...prev,
                 [sectionId]: true
               }));
             }
-          };
-
-          // Add toggle function for sections
-          const toggleSection = (sectionId) => {
-            setExpandedSections(prev => ({
-              ...prev,
-              [sectionId]: !prev[sectionId]
-            }));
-          };
+          }, []);
 
           // Initialize particles.js and fetch cryptocurrency prices
           useEffect(() => {
@@ -74,7 +85,7 @@
             // Cryptocurrency price tracker
             const updateCryptoPrices = async () => {
               try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd', {
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,sui&vs_currencies=usd', {
                   headers: {
                     'Accept': 'application/json',
                     'Cache-Control': 'no-cache'
@@ -89,12 +100,14 @@
                 setBtcPrice(`BTC: $${Math.round(data.bitcoin.usd).toLocaleString()}`);
                 setEthPrice(`ETH: $${Math.round(data.ethereum.usd).toLocaleString()}`);
                 setSolPrice(`SOL: $${Math.round(data.solana.usd).toLocaleString()}`);
+                setSuiPrice(`SUI: $${data.sui.usd.toFixed(2)}`);
               } catch (error) {
                 console.error('Error fetching crypto prices:', error);
                 // Keep the previous prices if they exist, otherwise show error
                 setBtcPrice(prev => prev.includes('$') ? prev : 'BTC: Error loading price');
                 setEthPrice(prev => prev.includes('$') ? prev : 'ETH: Error loading price');
                 setSolPrice(prev => prev.includes('$') ? prev : 'SOL: Error loading price');
+                setSuiPrice(prev => prev.includes('$') ? prev : 'SUI: Error loading price');
                 
                 // Retry after 5 seconds if it's a rate limit error
                 if (error.message.includes('429') || error.message.includes('rate limit')) {
@@ -109,11 +122,6 @@
 
             return () => clearInterval(interval);
           }, []);
-
-          // Toggle mobile menu
-          const toggleMenu = () => {
-            setMenuOpen(!menuOpen);
-          };
 
           // Connect wallet function
           const connectWallet = async () => {
@@ -146,9 +154,45 @@
                     }
 
                     // Try to get the Solana address
-                    const solAddr = await resolver.getText('solAddr');
-                    if (solAddr) {
-                      setSolanaAddress(solAddr);
+                    try {
+                      const solAddr = await resolver.getAddress(501); // Solana is coinType 501
+                      if (solAddr) {
+                        setSolanaAddress(solAddr);
+                      } else {
+                        // Fallback to text record
+                        const solText = await resolver.getText('solAddr');
+                        if (solText) {
+                          setSolanaAddress(solText);
+                        }
+                      }
+                    } catch (solError) {
+                      console.error('Error fetching Solana address:', solError);
+                      // Try fallback to text record if address lookup fails
+                      try {
+                        const solText = await resolver.getText('solAddr');
+                        if (solText) {
+                          setSolanaAddress(solText);
+                        }
+                      } catch (textError) {
+                        console.error('Error fetching Solana text record:', textError);
+                      }
+                    }
+
+                    // Try to get the Bitcoin address
+                    try {
+                      // First try address record
+                      const btcAddr = await resolver.getAddress(0); // Bitcoin is coinType 0
+                      if (btcAddr) {
+                        setBitcoinAddress(btcAddr);
+                      } else {
+                        // Fallback to text record
+                        const btcText = await resolver.getText('btc');
+                        if (btcText) {
+                          setBitcoinAddress(btcText);
+                        }
+                      }
+                    } catch (btcError) {
+                      console.error('Error fetching BTC address:', btcError);
                     }
                   }
                 }
@@ -171,6 +215,7 @@
               setEnsName('');
               setXHandle('');
               setSolanaAddress('');
+              setBitcoinAddress('');
               setIsConnected(false);
             } else {
               // Account changed
@@ -194,21 +239,59 @@
                     }
 
                     // Try to get the Solana address
-                    const solAddr = await resolver.getText('solAddr');
-                    if (solAddr) {
-                      setSolanaAddress(solAddr);
+                    try {
+                      const solAddr = await resolver.getAddress(501); // Solana is coinType 501
+                      if (solAddr) {
+                        setSolanaAddress(solAddr);
+                      } else {
+                        // Fallback to text record
+                        const solText = await resolver.getText('solAddr');
+                        if (solText) {
+                          setSolanaAddress(solText);
+                        }
+                      }
+                    } catch (solError) {
+                      console.error('Error fetching Solana address:', solError);
+                      // Try fallback to text record if address lookup fails
+                      try {
+                        const solText = await resolver.getText('solAddr');
+                        if (solText) {
+                          setSolanaAddress(solText);
+                        }
+                      } catch (textError) {
+                        console.error('Error fetching Solana text record:', textError);
+                      }
+                    }
+
+                    // Try to get the Bitcoin address
+                    try {
+                      // First try address record
+                      const btcAddr = await resolver.getAddress(0); // Bitcoin is coinType 0
+                      if (btcAddr) {
+                        setBitcoinAddress(btcAddr);
+                      } else {
+                        // Fallback to text record
+                        const btcText = await resolver.getText('btc');
+                        if (btcText) {
+                          setBitcoinAddress(btcText);
+                        }
+                      }
+                    } catch (btcError) {
+                      console.error('Error fetching BTC address:', btcError);
                     }
                   }
                 } else {
                   setEnsName('');
                   setXHandle('');
                   setSolanaAddress('');
+                  setBitcoinAddress('');
                 }
               } catch (error) {
                 console.error('Error fetching ENS records:', error);
                 setEnsName('');
                 setXHandle('');
                 setSolanaAddress('');
+                setBitcoinAddress('');
               }
             }
           };
@@ -219,6 +302,7 @@
             setEnsName('');
             setXHandle('');
             setSolanaAddress('');
+            setBitcoinAddress('');
             setIsConnected(false);
             // Remove the event listener
             if (window.ethereum) {
@@ -237,17 +321,17 @@
             <div className="App">
               <div id="particles-js" className="particles"></div>
               <header>
-                <nav>
-                  <button className="menu-toggle" onClick={toggleMenu}>
-                    ☰
-                  </button>
-                  <ul className={menuOpen ? 'open' : ''}>
-                    <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); toggleMenu(); }}>About</a></li>
-                    <li><a href="#experience" onClick={(e) => { e.preventDefault(); scrollToSection('experience'); toggleMenu(); }}>Experience</a></li>
-                    <li><a href="#education" onClick={(e) => { e.preventDefault(); scrollToSection('education'); toggleMenu(); }}>Education</a></li>
+              <nav>
+            <button className="menu-toggle" onClick={toggleMenu}>
+              ☰
+            </button>
+            <ul className={menuOpen ? 'open' : ''}>
+              <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); toggleMenu(); }}>About</a></li>
+              <li><a href="#experience" onClick={(e) => { e.preventDefault(); scrollToSection('experience'); toggleMenu(); }}>Experience</a></li>
+              <li><a href="#education" onClick={(e) => { e.preventDefault(); scrollToSection('education'); toggleMenu(); }}>Education</a></li>
                     <li><a href="#stack" onClick={(e) => { e.preventDefault(); scrollToSection('stack'); toggleMenu(); }}>Stack</a></li>
-                    <li><a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); toggleMenu(); }}>Contact</a></li>
-                  </ul>
+              <li><a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); toggleMenu(); }}>Contact</a></li>
+            </ul>
                   <div className="wallet-section">
                     {!isConnected ? (
                       <button className="connect-wallet" onClick={connectWallet}>
@@ -275,22 +359,32 @@
                                   <span className="value">{xHandle}</span>
                                 </div>
                               )}
-                              {solanaAddress && (
-                                <div className="dropdown-item solana-address">
-                                  <span className="label">Solana</span>
-                                  <span className="value">
-                                    {`${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}`}
-                                  </span>
-                                </div>
-                              )}
+                              <div className="dropdown-item bitcoin-address">
+                                <span className="label">Bitcoin</span>
+                                <span className="value">
+                                  {bitcoinAddress ? 
+                                    `${bitcoinAddress.slice(0, 10)}...${bitcoinAddress.slice(-10)}` : 
+                                    '[Bitcoin Addr not found]'
+                                  }
+                                </span>
+                              </div>
+                              <div className="dropdown-item solana-address">
+                                <span className="label">Solana</span>
+                                <span className="value">
+                                  {solanaAddress ? 
+                                    `${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}` : 
+                                    '[Solana Addr not found]'
+                                  }
+                                </span>
+                              </div>
                             </div>
                           )}
                         </div>
                       </div>
                     )}
                   </div>
-                </nav>
-              </header>
+          </nav>
+          </header>
 
               <button className="chat-bubble" onClick={() => setShowChatPopup(true)} aria-label="Open chat">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -314,10 +408,10 @@
               </div>
 
               <main>
-                <section id="hero">
-                  <h1 id="name">{name}</h1>
-                  <p>DevOps Engineer</p>
-                </section>
+              <section id="hero">
+                <h1 id="name">{name}</h1>
+                <p>DevOps Engineer</p>
+              </section>
                 
                 <div className="section-titles">
                   <div 
@@ -357,55 +451,55 @@
                     id="about" 
                     className={`collapsible-section ${expandedSections.about ? 'expanded' : ''}`}
                   >
-                    <h2>About Me</h2>
+                  <h2>About Me</h2>
                     <div className="section-content">
-                      <p>Blockchain believer, with a rapidly accelerating interest in AI. 4 years of experience engineering critical infrastructure for applications with millions of users</p>
+                  <p>Blockchain believer, with a rapidly accelerating interest in AI. 4 years of experience engineering critical infrastructure for applications with millions of users</p>
                     </div>
-                  </section>
+                </section>
 
                   <section 
                     id="experience" 
                     className={`collapsible-section ${expandedSections.experience ? 'expanded' : ''}`}
                   >
-                    <h2>Professional Experience</h2>
+                  <h2>Professional Experience</h2>
                     <div className="section-content">
-                      <div className="job">
-                        <h3>Software Engineer - DevOps</h3>
-                        <p>Cognizant Technology Solutions (contract via Keybank)</p>
-                        <p>Jan 2020 - Feb 2024</p>
-                        <ul>
-                          <li>Owned and engineered 200+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
-                          <li>Increased deployment velocity by ~750% (12+ hours -> 1.5 hours)</li>
-                          <li>Improved release stability to 95% (eliminate errors in prod deployment)</li>
-                          <li>Employed regular trunk-based flow strategies and release schedule</li>
-                        </ul>
+                  <div className="job">
+                    <h3>Software Engineer - DevOps</h3>
+                    <p>Cognizant Technology Solutions (contract via Keybank)</p>
+                    <p>Jan 2020 - Feb 2024</p>
+                    <ul>
+                      <li>Owned and engineered 200+ deployments via CI/CD pipelines (Git, XLR, Jenkins)</li>
+                      <li>Increased deployment velocity by ~750% (12+ hours -> 1.5 hours)</li>
+                      <li>Improved release stability to 95% (eliminate errors in prod deployment)</li>
+                      <li>Employed regular trunk-based flow strategies and release schedule</li>
+                    </ul>
+                  </div>
+                  <div className="job">
+                    <h3>Lead Developer | Python</h3>
+                    <p>Pokémon Revolution Online (Non-Profit)</p>
+                    <p>January 2015 - July 2019 | Remote</p>
+                    <ul>
+                      <li>Created quest storylines and integrated with previously existing content</li>
+                      <li>Delivered spontaneous hunt events, scripted interactions, dynamic objectives</li>
+                      <li>Integrated and improved mechanics of the battle API</li>
+                      <li>Developed 'Mega Stone' mechanics and plot</li>
+                      <li>Converted the core MMO codebase from Xanascript to Python</li>
+                    </ul>
                       </div>
-                      <div className="job">
-                        <h3>Lead Developer | Python</h3>
-                        <p>Pokémon Revolution Online (Non-Profit)</p>
-                        <p>January 2015 - July 2019 | Remote</p>
-                        <ul>
-                          <li>Created quest storylines and integrated with previously existing content</li>
-                          <li>Delivered spontaneous hunt events, scripted interactions, dynamic objectives</li>
-                          <li>Integrated and improved mechanics of the battle API</li>
-                          <li>Developed 'Mega Stone' mechanics and plot</li>
-                          <li>Converted the core MMO codebase from Xanascript to Python</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </section>
+                  </div>
+                </section>
 
                   <section 
                     id="education" 
                     className={`collapsible-section ${expandedSections.education ? 'expanded' : ''}`}
                   >
-                    <h2>Education</h2>
+                  <h2>Education</h2>
                     <div className="section-content">
-                      <h3>B.S. Computer Science & Engineering</h3>
-                      <p>Ohio State University</p>
-                      <p>August 2015 - December 2019 | Columbus, OH</p>
+                  <h3>B.S. Computer Science & Engineering</h3>
+                  <p>Ohio State University</p>
+                  <p>August 2015 - December 2019 | Columbus, OH</p>
                     </div>
-                  </section>
+                </section>
 
                   <section 
                     id="stack"
@@ -413,30 +507,29 @@
                   >
                     <h2>Stack</h2>
                     <div className="section-content">
-                      <ul className="skill-list">
-                        {['Docker', 'ELK Stack', 'Git', 'Jenkins', 'Linux', 'Mainframe', 'Python', 'Solidity', 'SQL', 'XL Release', 'YAML'].map((skill, index) => (
-                          <li key={index}>{skill}</li>
-                        ))}
-                      </ul>
+                  <ul className="skill-list">
+                        {skillsList}
+                  </ul>
                     </div>
-                  </section>
+                </section>
 
                   <section 
                     id="contact" 
                     className={`collapsible-section ${expandedSections.contact ? 'expanded' : ''}`}
                   >
-                    <h2>Contact</h2>
+                  <h2>Contact</h2>
                     <div className="section-content">
-                      <p>Email: Brandon.Arbuthnot@protonmail.com</p>
-                      <p>Phone: (330) 703-8650</p>
+                  <p>Email: Brandon.Arbuthnot@protonmail.com</p>
+                  <p>Phone: (330) 703-8650</p>
                     </div>
-                  </section>
+                </section>
                 </div>
               </main>
               <div id="crypto-tracker">
                 <span id="btc-price">{btcPrice}</span>
                 <span id="eth-price">{ethPrice}</span>
                 <span id="sol-price">{solPrice}</span>
+                <span id="sui-price">{suiPrice}</span>
               </div>
               <footer>
                 <p>© 2024 Brandon Arbuthnot. All rights reserved.</p>

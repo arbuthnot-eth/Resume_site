@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Chat from './Chat';
 import { initParticles } from '../particles';
 
-function ChatPage({ isConnected, btcPrice, ethPrice, solPrice, showTickers, setShowTickers }) {
+function ChatPage({ isConnected, btcPrice, ethPrice, solPrice, suiPrice, showTickers, setShowTickers }) {
   useEffect(() => {
     // Initialize particles.js
     initParticles();
@@ -28,6 +28,7 @@ function ChatPage({ isConnected, btcPrice, ethPrice, solPrice, showTickers, setS
         <span id="btc-price">{btcPrice}</span>
         <span id="eth-price">{ethPrice}</span>
         <span id="sol-price">{solPrice}</span>
+        <span id="sui-price">{suiPrice}</span>
       </div>
     </div>
   );

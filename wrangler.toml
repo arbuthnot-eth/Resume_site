@@ -1,5 +1,0 @@
-
-name = "brandon-arbuthnot"
-compatibility_date = "2025-04-01"
-[site]
-bucket = "build"  # Points to CRA's output folder

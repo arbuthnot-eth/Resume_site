@@ -342,11 +342,13 @@ footer p {
 .message.user {
   background: rgba(212, 175, 55, 0.1);
   margin-left: 20%;
+  color: #D4AF37;
 }
 
 .message.assistant {
   background: rgba(255, 255, 255, 0.1);
   margin-right: 20%;
+  color: #14F195;
 }
 
 .input-form {
@@ -942,8 +944,8 @@ footer p {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) translateY(-20px);
-  width: 800px;
-  height: 500px;
+  width: 75vw;
+  height: 75vh;
   background: rgba(0, 0, 0, 0.9);
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(20, 241, 149, 0.2);

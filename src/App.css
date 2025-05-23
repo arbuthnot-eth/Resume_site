@@ -285,6 +285,7 @@ footer p {
   width: 100%;
   top: 0;
   left: 0;
+  right: 0;
 }
 
 .chat-page .particles {
@@ -492,7 +493,7 @@ footer p {
     transform: none;
     text-align: center;
   }
-  
+
   .wallet-info {
     align-items: center;
   }
@@ -895,16 +896,16 @@ footer p {
     font-size: 0.8rem;
     padding: 0.4rem 0.3rem;
   }
-  
+
   .section-titles {
     gap: 0.3rem;
     padding: 0.4rem;
   }
-  
+
   #hero h1 {
     font-size: 2rem;
   }
-  
+
   #hero p {
     font-size: 1.2rem;
   }
@@ -1023,6 +1024,75 @@ footer p {
   overflow-y: auto;
   padding: 15px;
   max-height: calc(100% - 120px);
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Move items to opposite ends */
+  margin-bottom: 0.25rem; /* Further reduce space between contact items */
+}
+
+.contact-item:last-child {
+  margin-bottom: 0; /* Remove margin from the last item */
+}
+
+.contact-text {
+  font-size: 1.5rem; /* Make text much bigger */
+  color: #FFD700; /* Change color to yellow */
+  /* margin-right is no longer needed with space-between */
+  margin-bottom: 0; /* Remove default paragraph margin */
+}
+
+.copy-button {
+  background-color: #D4AF37; /* Gold color */
+  color: #0C0D11; /* Dark background color */
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
+}
+
+.copy-button:hover {
+  background-color: #FFD700; /* Lighter gold on hover */
+}
+
+/* Custom notification styles */
+.copy-notification {
+  position: fixed;
+  bottom: 80px; /* Position above the footer */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #14F195; /* Green color */
+  color: #0C0D11; /* Dark text color */
+  padding: 10px 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out, bottom 0.5s ease-in-out;
+  z-index: 1000;
+}
+
+.copy-notification.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  bottom: 90px; /* Move up slightly when shown */
+}
+
+.copy-notification .close-button {
+  background: none;
+  border: none;
+  color: #0C0D11;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
 }
 
 .chat-popup .message {

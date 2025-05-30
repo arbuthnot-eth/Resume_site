@@ -5,6 +5,11 @@ function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("deepseek/deepseek-r1-0528:free"); // Default model
+
+  const handleModelChange = (e) => {
+    setSelectedModel(e.target.value);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,8 +23,8 @@ function Chat() {
     setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
 
     try {
-      // Call the Juno worker API with the user's query
-      const response = await fetch(`https://juno-worker.imbibed.workers.dev/?query=${encodeURIComponent(userMessage)}`, {
+      // Call the Juno worker API with the user's query and selected model
+      const response = await fetch(`https://juno-worker.imbibed.workers.dev/?query=${encodeURIComponent(userMessage)}&generationModel=${encodeURIComponent(selectedModel)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -61,6 +66,20 @@ function Chat() {
         )}
       </div>
       <form onSubmit={handleSubmit} className="input-form">
+        <div className="model-selector" style={{ marginBottom: '10px' }}> 
+          <label htmlFor="model-select" style={{ marginRight: '10px', color: '#D4AF37' }}>Select Model: </label>
+          <select 
+            id="model-select" 
+            value={selectedModel} 
+            onChange={handleModelChange}
+            disabled={isLoading}
+            style={{ padding: '8px', borderRadius: '4px', background: 'rgba(255, 255, 255, 0.1)', color: '#D4AF37', border: 'none' }}
+          >
+            <option value="google/gemini-2.5-flash-preview">Gemini 2.5 Flash Preview</option>
+            <option value="google/gemini-pro">Gemini Pro</option>
+            <option value="deepseek/deepseek-r1-0528:free">DeepSeek R1 0528 (Free)</option>
+          </select>
+        </div>
         <input
           type="text"
           value={input}

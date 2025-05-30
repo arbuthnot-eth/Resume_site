@@ -21,6 +21,7 @@ function App() {
   const [showWalletDetails, setShowWalletDetails] = useState(false);
   const [showTickers, setShowTickers] = useState(true);
   const [showCopyNotification, setShowCopyNotification] = useState(false); // New state for notification
+  const [selectedModel, setSelectedModel] = useState("deepseek/deepseek-r1-0528:free"); // Model selection state
   const [expandedSections, setExpandedSections] = useState({
     about: false,
     experience: false,
@@ -40,6 +41,10 @@ function App() {
   const toggleMenu = useCallback(() => {
     setMenuOpen(prev => !prev);
   }, []);
+
+  const handleModelChange = (e) => { // Function to handle model change
+    setSelectedModel(e.target.value);
+  };
 
   const toggleSection = useCallback((sectionId) => {
     setExpandedSections(prev => ({
@@ -413,10 +418,32 @@ function App() {
          <div id="chat-particles" className="particles"></div>
          <div className="chat-header">
            <h2>Juno AI</h2>
+           <div className="model-selector-header" style={{ marginLeft: '15px' }}>
+             <select
+               id="model-select-header"
+               className="chat-model-selector"
+               value={selectedModel}
+               onChange={handleModelChange}
+               style={{
+                 backgroundColor: '#000000',
+                 color: '#14F195',
+                 border: '1px solid #14F195',
+                 padding: '5px 8px',
+                 borderRadius: '4px',
+                 fontFamily: "'Orbitron', sans-serif",
+                 fontSize: '0.9rem',
+                 fontWeight: 'bold'
+               }}
+             >
+               <option value="deepseek/deepseek-r1-0528:free" style={{ backgroundColor: '#000000', color: '#14F195', fontWeight: 'normal' }}>DeepSeek (Free)</option>
+               <option value="google/gemini-2.5-flash-preview" style={{ backgroundColor: '#000000', color: '#14F195', fontWeight: 'normal' }}>Gemini 2.5 Flash</option>
+               <option value="google/gemini-pro" style={{ backgroundColor: '#000000', color: '#14F195', fontWeight: 'normal' }}>Gemini 2.5 Pro</option>
+             </select>
+           </div>
            <button className="close-button" onClick={() => setShowChatPopup(false)}>×</button>
          </div>
          {isConnected ? (
-           <Chat />
+           <Chat selectedModel={selectedModel} />
          ) : (
            <div className="connect-wallet-prompt">
              <p>Please connect your wallet to use the chat function</p>

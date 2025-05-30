@@ -344,12 +344,58 @@ footer p {
   background: rgba(212, 175, 55, 0.1);
   margin-left: 20%;
   color: #D4AF37;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.message.user p,
+.message.user li,
+.message.user span,
+.message.user div {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.message.user pre {
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  max-width: 100%;
+}
+
+.message.user code {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .message.assistant {
   background: rgba(255, 255, 255, 0.1);
   margin-right: 20%;
   color: #14F195;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.message.assistant p,
+.message.assistant li,
+.message.assistant span,
+.message.assistant div {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.message.assistant pre {
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  max-width: 100%;
+}
+
+.message.assistant code {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .input-form {
@@ -1124,4 +1170,57 @@ footer p {
     width: calc(100% - 40px);
     height: 70vh;
   }
+}
+
+/* Chat Model Selector Neon Highlight */
+.chat-model-selector option:hover {
+  background-color: #0a0a0a !important; /* Slightly lighter black for hover */
+  color: #39ff14 !important; /* Neon green text */
+  box-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14, 0 0 15px #39ff14; /* Neon glow effect */
+}
+
+/* Style for the dropdown arrow itself for better consistency if possible (browser dependent) */
+.chat-model-selector {
+  /* Any specific styles for the select element itself if needed beyond inline */
+}
+
+.chat-model-selector::selection {
+    /* This is for text selection, not option selection, usually not what is needed for dropdowns */
+}
+
+/* Targeting selected option is tricky and browser-inconsistent with pure CSS for background. */
+/* The color of the selected option text is controlled by the select element's color style. */
+/* The fontWeight: bold on the select element makes the currently selected option appear bold. */
+
+/* Fallback or specific styling for focused state if needed, though :hover is more common for dropdown options */
+.chat-model-selector option:focus {
+  background-color: #101010 !important;
+  color: #39ff14 !important;
+}
+
+/* Text wrapping within assistant messages */
+.message.assistant {
+  overflow-wrap: break-word; 
+  word-wrap: break-word; 
+}
+
+.message.assistant p,
+.message.assistant li,
+.message.assistant span,
+.message.assistant div {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.message.assistant pre {
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  max-width: 100%;
+}
+
+.message.assistant code {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }

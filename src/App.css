@@ -398,6 +398,23 @@ footer p {
   word-wrap: break-word;
 }
 
+/* Color for headings within assistant messages */
+.message.assistant h1,
+.message.assistant h2,
+.message.assistant h3,
+.message.assistant h4,
+.message.assistant h5,
+.message.assistant h6 {
+  color: #D4AF37 !important; /* Yellow/orange for title lines */
+}
+
+/* Style for <hr> elements within assistant messages */
+.message.assistant hr {
+  border: none; 
+  border-top: 2px solid #D4AF37;
+  margin: 1em 0;
+}
+
 .input-form {
   display: flex;
   gap: 10px;
@@ -845,7 +862,7 @@ footer p {
   font-family: 'Orbitron', sans-serif;
   position: relative;
   overflow: hidden;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .section-title:hover {
